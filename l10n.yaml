@@ -1,0 +1,9 @@
+# Flutter gen-l10n configuration.
+# ARB source files live in lib/l10n; generated Dart lands in the same package.
+# Template is en-US; es-US is the second MVP locale. Additional locales are
+# post-MVP and are NOT added here until founder-approved.
+arb-dir: lib/l10n
+template-arb-file: app_en.arb
+output-localization-file: app_localizations.dart
+output-class: AppLocalizations
+nullable-getter: false

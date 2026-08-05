@@ -1,0 +1,139 @@
+name: savvi
+description: "Savvi — Food Support member app (Flutter production frontend)."
+publish_to: "none"
+version: 0.6.1+23
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Savvi production frontend — approved stack (Monica, Stage 1).
+#   State      : Riverpod (hooks_riverpod + riverpod_annotation)
+#   Routing    : go_router
+#   API        : Dio (structured client + interceptors)
+#   Models     : freezed + json_serializable
+#   L10n       : flutter_localizations + intl, ARB for en-US and es-US
+#   Storage    : flutter_secure_storage (tokens) / shared_preferences (prefs)
+#   Firebase   : Auth + Cloud Messaging integration-ready (wired in a later stage)
+# The app calls backend APIs and displays backend-returned values. It never
+# generates official IDs, QR tokens, pickup codes, access tokens, statuses,
+# audit logs, or notification events.
+# ─────────────────────────────────────────────────────────────────────────────
+
+environment:
+  sdk: ">=3.4.0 <4.0.0"
+  flutter: ">=3.22.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+
+  # State management
+  flutter_riverpod: ^2.5.1
+  riverpod_annotation: ^2.3.5
+
+  # Routing
+  go_router: ^14.2.0
+
+  # Networking
+  dio: ^5.5.0
+
+  # Models / serialization
+  freezed_annotation: ^2.4.4
+  json_annotation: ^4.9.0
+
+  # Localization / formatting
+  intl: ^0.20.2
+
+  # Storage
+  flutter_secure_storage: ^9.2.2
+  shared_preferences: ^2.2.3
+
+  # Firebase — integration-ready; initialized in a later stage.
+  # Declared here so the API-client auth interceptor and FCM token hooks
+  # have their contracts in place. Uncomment when Firebase config is added.
+  # firebase_core: ^3.3.0
+  # firebase_auth: ^5.1.4
+  # firebase_messaging: ^15.0.4
+
+  cupertino_icons: ^1.0.8
+  get: ^4.7.3
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+
+  # Code generation
+  build_runner: ^2.4.11
+  freezed: ^2.5.7
+  json_serializable: ^6.8.0
+  riverpod_generator: ^2.4.3
+
+
+flutter:
+  uses-material-design: true
+  generate: true   # enables flutter gen-l10n from ARB files
+  assets:
+    - assets/
+    - assets/images/
+    - assets/fonts/
+
+  fonts:
+    - family: DMSans
+      fonts:
+        - asset: assets/fonts/DMSans_18pt-Thin.ttf
+          weight: 100
+        - asset: assets/fonts/DMSans_18pt-ThinItalic.ttf
+          weight: 100
+          style: italic
+
+        - asset: assets/fonts/DMSans_18pt-ExtraLight.ttf
+          weight: 200
+        - asset: assets/fonts/DMSans_18pt-ExtraLightItalic.ttf
+          weight: 200
+          style: italic
+
+        - asset: assets/fonts/DMSans_18pt-Light.ttf
+          weight: 300
+        - asset: assets/fonts/DMSans_18pt-LightItalic.ttf
+          weight: 300
+          style: italic
+
+        - asset: assets/fonts/DMSans_18pt-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/DMSans_18pt-Italic.ttf
+          weight: 400
+          style: italic
+
+        - asset: assets/fonts/DMSans_18pt-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/DMSans_18pt-MediumItalic.ttf
+          weight: 500
+          style: italic
+
+        - asset: assets/fonts/DMSans_18pt-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/DMSans_18pt-SemiBoldItalic.ttf
+          weight: 600
+          style: italic
+
+        - asset: assets/fonts/DMSans_18pt-Bold.ttf
+          weight: 700
+        - asset: assets/fonts/DMSans_18pt-BoldItalic.ttf
+          weight: 700
+          style: italic
+
+        - asset: assets/fonts/DMSans_18pt-ExtraBold.ttf
+          weight: 800
+        - asset: assets/fonts/DMSans_18pt-ExtraBoldItalic.ttf
+          weight: 800
+          style: italic
+
+        - asset: assets/fonts/DMSans_18pt-Black.ttf
+          weight: 900
+        - asset: assets/fonts/DMSans_18pt-BlackItalic.ttf
+          weight: 900
+          style: italic
+    - family: DMSerifDisplay
+      fonts:
+        - asset: assets/fonts/DMSerifDisplay-Regular.ttf
+        - asset: assets/fonts/DMSerifDisplay-Italic.ttf
