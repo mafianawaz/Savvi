@@ -1,84 +1,8 @@
 import 'package:flutter/cupertino.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-
 import '../../core/localization/locale_controller.dart';
 import '../../core/network/savvi_api.dart';
 import '../../core/routing/app_router.dart';
-import '../../core/state/providers.dart';
-
-/// Auth session state. In production the signed-in identity comes from Firebase
-/// Auth; the ID token then backs the API client. Firebase wiring is a later
-/// stage — Stage 2 models the states and the sign-in call against the mock so
-/// the screens and transitions are real.
-///
-/// RiverPod
-// sealed class AuthState {
-//   const AuthState();
-// }
-//
-// class AuthSignedOut extends AuthState {
-//   const AuthSignedOut();
-// }
-//
-// class AuthBusy extends AuthState {
-//   const AuthBusy();
-// }
-//
-// class AuthSignedIn extends AuthState {
-//   const AuthSignedIn(this.profile);
-//   final Map<String, dynamic> profile;
-// }
-//
-// class AuthFailed extends AuthState {
-//   const AuthFailed(this.messageKey);
-//   final String messageKey; // l10n key
-// }
-//
-// class AuthController extends StateNotifier<AuthState> {
-//   AuthController(this._ref) : super(const AuthSignedOut());
-//   final Ref _ref;
-//
-//   /// Sign in with email + password.
-//   ///
-//   /// Later stage: authenticate with Firebase, then call SavviApi.session()
-//   /// with the resulting ID token. Stage 2 calls the mock session() so the UI
-//   /// flow is exercised end to end.
-//   Future<AuthState> signIn({
-//     required String email,
-//     required String password,
-//   }) async {
-//     state = const AuthBusy();
-//     final api = _ref.read(savviApiProvider);
-//     final result = await api.session();
-//     final next = result.when(
-//       ok: (data) => AuthSignedIn(data),
-//       err: (f) => AuthFailed(f.messageKey),
-//     );
-//     state = next;
-//     return next;
-//   }
-//
-//   void signOut() => state = const AuthSignedOut();
-//
-//   /// Merge updated fields into the signed-in profile so edits made on the
-//   /// Profile screen propagate everywhere that reads the session profile.
-//   void patchProfile(Map<String, dynamic> updates) {
-//     final s = state;
-//     if (s is AuthSignedIn) {
-//       state = AuthSignedIn({...s.profile, ...updates});
-//     }
-//   }
-// }
-//
-// final authControllerProvider =
-//     StateNotifierProvider<AuthController, AuthState>(
-//         (ref) => AuthController(ref));
-
-
-/// GETx
-///
 import 'package:get/get.dart';
-
 import '../../l10n/app_localizations.dart';
 import '../../shared/patterns/error_text.dart';
 import '../../shared/patterns/feedback.dart';
@@ -87,10 +11,10 @@ import '../profile/profile_controller.dart';
 
 /// Auth session state.
 ///
-/// In production the signed-in identity comes from Firebase Auth; the ID token
-/// then backs the API client. Firebase wiring is a later stage — Stage 2 models
-/// the states and the sign-in call against the mock so the screens and
-/// transitions are real.
+/// In production the signed-in identity comes from Firebase Auth; the ID
+/// token then backs the API client. Firebase wiring is a later stage —
+/// Stage 2 models the states and the sign-in call against the mock so the
+/// screens and transitions are real.
 sealed class AuthState {
   const AuthState();
 }
@@ -124,14 +48,12 @@ class AuthController extends GetxController {
 
   /// Current authentication state.
   // final Rx<AuthState> state = const AuthSignedOut().obs;
-  final Rx<AuthState> state = Rx<AuthState>(
-    const AuthSignedOut(),
-  );
+  final Rx<AuthState> state = Rx<AuthState>(const AuthSignedOut());
   /// Sign in with email + password.
   ///
   /// Later stage: authenticate with Firebase, then call SavviApi.session()
-  /// with the resulting ID token. Stage 2 calls the mock session() so the UI
-  /// flow is exercised end to end.
+  /// with the resulting ID token. Stage 2 calls the mock session() so the
+  /// UI flow is exercised end to end.
   Future<AuthState> signIn({
     required String email,
     required String password,
@@ -183,7 +105,6 @@ class AuthController extends GetxController {
 
 class SignInController extends GetxController {
   final formKey = GlobalKey<FormState>();
-
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
 
@@ -196,16 +117,25 @@ class SignInController extends GetxController {
   void onInit() {
     super.onInit();
 
-    authController = Get.find();
-    accessController = Get.find();
-    profileController = Get.find();
-    localeController = Get.find();
+    // FIX: these three were previously declared `late final` but never
+    // assigned here (the Get.find/Get.put calls were commented out), so
+    // onReady() below threw a LateInitializationError the instant the
+    // sign-in screen loaded. All four dependencies are permanent
+    // singletons registered in main.dart before runApp(), so a plain
+    // Get.find is correct and safe here.
+    authController = Get.find<AuthController>();
+    accessController = Get.find<AccessController>();
+    profileController = Get.find<EditProfileController>();
+    localeController = Get.find<LocaleController>();
   }
 
   @override
   void onReady() {
     super.onReady();
 
+    /// Landing on sign-in is the entry point; clear any in-progress
+    /// onboarding state so a prior, abandoned attempt can't leave a stale
+    /// verified grant.
     accessController.reset();
     profileController.refreshFromProfile();
   }
@@ -253,6 +183,8 @@ class SignInController extends GetxController {
 
   void toggleLocale() {
     final isEnglish = localeController.locale.value == SavviLocales.enUS;
-    localeController.setLocale(isEnglish ? SavviLocales.esUS : SavviLocales.enUS);
+    localeController.setLocale(
+      isEnglish ? SavviLocales.esUS : SavviLocales.enUS,
+    );
   }
 }

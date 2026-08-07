@@ -5,6 +5,7 @@ import '../../core/state/shell_nav.dart';
 import '../../data/models/member_request.dart';
 import '../auth/auth_controller.dart';
 import '../request/request_controller.dart';
+import 'requests_controller.dart';
 
 class HomeController extends GetxController {
   HomeController({
@@ -14,7 +15,7 @@ class HomeController extends GetxController {
   });
 
   final AuthController authController;
-  final RequestsController requestsController;
+  final RequestController requestsController;
   // final NotificationsController notificationsController;
 
   Map<String, dynamic> get profile =>
@@ -32,8 +33,8 @@ class HomeController extends GetxController {
   String get nonprofit =>
       profile['nonprofit'] as String? ?? '';
 
-  MemberRequest? get activeRequest =>
-      requestsController.activeRequest.value;
+  // MemberRequest? get activeRequest =>
+  //     requestsController.activeRequest?.value;
 
   // int get unreadCount {
   //   return notificationsController.items

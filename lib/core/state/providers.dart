@@ -80,7 +80,8 @@ class AppConfig {
 
 /// Register all application-level dependencies.
 ///
-/// Call this once from main() before runApp().
+/// Call this once from main() before runApp(), after SharedPreferences and
+/// LocaleController are registered.
 class AppBindings {
   static void init() {
     // App configuration
@@ -88,15 +89,19 @@ class AppBindings {
       AppConfig.dev,
       permanent: true,
     );
-    Get.put<FirebaseAuthGateway>(StubFirebaseAuthGateway(), permanent: true);
+
+    Get.put<FirebaseAuthGateway>(
+      StubFirebaseAuthGateway(),
+      permanent: true,
+    );
+
     // API Client
     Get.put<ApiClient>(
       ApiClient(
         baseUrl: Get.find<AppConfig>().apiBaseUrl,
         tokenProvider: stubTokenProvider,
         localeTagProvider: () {
-          final locale =
-              Get.find<LocaleController>().locale.value;
+          final locale = Get.find<LocaleController>().locale.value;
           return SavviLocales.tag(locale);
         },
       ),
@@ -126,9 +131,7 @@ class AppBindings {
 
     // Locale-aware formatter
     Get.lazyPut<Fmt>(
-          () => Fmt(
-        Get.find<LocaleController>().locale.value,
-      ),
+          () => Fmt(Get.find<LocaleController>().locale.value),
       fenix: true,
     );
   }

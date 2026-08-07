@@ -1,5 +1,16 @@
 import 'package:flutter/material.dart';
 
+import '../../data/models/enums.dart';
+
+/// Savvi design tokens — ported 1:1 from the approved v45 prototype CSS.
+///
+/// These are the single source of truth for colour, radius, and spacing.
+/// Do not hard-code hex values or paddings in widgets; reference [SavColors],
+/// [SavRadius], and [SavSpace] instead.
+import 'package:flutter/material.dart';
+
+import '../../data/models/enums.dart';
+
 /// Savvi design tokens — ported 1:1 from the approved v45 prototype CSS.
 ///
 /// These are the single source of truth for colour, radius, and spacing.
@@ -56,7 +67,7 @@ class SavRadius {
   static const button = BorderRadius.all(Radius.circular(r14));
   static const pill = BorderRadius.all(Radius.circular(r4));
   static const sheet =
-      BorderRadius.vertical(top: Radius.circular(22));
+  BorderRadius.vertical(top: Radius.circular(22));
 }
 
 class SavSpace {
@@ -114,5 +125,25 @@ class SavImages{
   static const String protein = "assets/images/protein_meat.jpg";
   static const String request = "assets/images/request.jpg";
   static const String shelfStable = "assets/images/shelf_stable.jpg";
+  static const String dairy = "assets/images/shelf_stable.jpg";
 
+  static String category(FoodCategory category) => switch (category) {
+    FoodCategory.produce => produce,
+    FoodCategory.dairy => dairy,
+    FoodCategory.meatProtein => protein,
+    FoodCategory.preparedMeals => preparedMeat,
+    FoodCategory.bakeryBread => bakery,
+    FoodCategory.pantry => pantry,
+    FoodCategory.frozen => frozen,
+    FoodCategory.snacksBeverages => beverages,
+    FoodCategory.babyFood => babyFood,
+    FoodCategory.infantFormula => babyFormula,
+  };
+
+  static String method(RequestMethod method) => switch (method) {
+    RequestMethod.pickup => pickup,
+    RequestMethod.delivery => delivery,
+  };
 }
+
+

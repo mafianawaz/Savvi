@@ -493,6 +493,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get navAlerts => 'Avisos';
 
   @override
+  String get navEvents => 'Eventos';
+
+  @override
   String get navRequest => 'Solicitar';
 
   @override
@@ -500,6 +503,9 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get navProfile => 'Perfil';
+
+  @override
+  String get navSettings => 'Configuración';
 
   @override
   String get greetMorning => 'Buenos días';

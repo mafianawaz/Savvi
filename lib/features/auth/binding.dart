@@ -8,6 +8,7 @@ import '../access/access_controller.dart';
 import '../home/requests_controller.dart';
 import '../notifications/notifications_controller.dart';
 import '../profile/profile_controller.dart';
+import '../request/request_controller.dart';
 import 'auth_controller.dart';
 
 class InitialBinding extends Bindings {
@@ -46,8 +47,8 @@ class InitialBinding extends Bindings {
       permanent: true,
     );
 
-    Get.put<RequestsController>(
-      RequestsController(api: Get.find<SavviApi>()),
+    Get.put<RequestController>(
+      RequestController(api: Get.find<SavviApi>(), authController:  Get.find<AuthController>()),
       permanent: true,
     );
 

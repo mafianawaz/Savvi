@@ -485,6 +485,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get navAlerts => 'Alerts';
 
   @override
+  String get navEvents => 'Events';
+
+  @override
   String get navRequest => 'Request';
 
   @override
@@ -492,6 +495,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get navProfile => 'Profile';
+
+  @override
+  String get navSettings => 'Settings';
 
   @override
   String get greetMorning => 'Good morning';

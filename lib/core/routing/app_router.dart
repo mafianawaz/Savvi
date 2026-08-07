@@ -19,7 +19,7 @@ import '../../features/delivery/delivery_screen.dart';
 import '../../features/pickup/pickup_screen.dart';
 import '../../features/notifications/notifications_screen.dart';
 import '../../features/notifications/notif_prefs_screen.dart';
-import '../../features/profile/profile_tab_redirect.dart';
+import '../../features/profile/profile_screen.dart';
 import '../../features/settings/settings_screen.dart';
 import '../../features/settings/security_screen.dart';
 import '../../data/models/onboarding.dart';
@@ -105,8 +105,7 @@ class AppPages {
 
     GetPage(
       name: Routes.request,
-      page: () => QrAccessScreen(),
-      // const RequestWizardScreen(),
+      page: () => const RequestWizardScreen(),
     ),
 
     GetPage(
@@ -153,20 +152,18 @@ class AppPages {
 
     GetPage(
       name: Routes.profile,
-      page: () => QrAccessScreen(),
-      // const ProfileTabRedirect(),
+      page: () => const ProfileScreen(),
     ),
 
-    GetPage(
-      name: Routes.settings,
-      page: () => QrAccessScreen(),
-      // const SettingsScreen(),
-    ),
+    // NOTE: Settings has no standalone push route — it's the 5th bottom-nav
+    // tab in MainShell (SettingsScreen renders as a tab body, not a full
+    // Scaffold/page), matching how Home/Events/Activity aren't pushable
+    // routes either. Routes.settings stays defined for callers that need
+    // the string, but isn't registered as a GetPage.
 
     GetPage(
       name: Routes.security,
-      page: () => QrAccessScreen(),
-      // const SecurityScreen(),
+      page: () => const SecurityScreen(),
     ),
     // Forgot-password flow
     GetPage(name: Routes.resetPassword, page: () => const ResetPasswordScreen()),

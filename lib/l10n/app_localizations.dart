@@ -998,6 +998,12 @@ abstract class AppLocalizations {
   /// **'Alerts'**
   String get navAlerts;
 
+  /// No description provided for @navEvents.
+  ///
+  /// In en, this message translates to:
+  /// **'Events'**
+  String get navEvents;
+
   /// No description provided for @navRequest.
   ///
   /// In en, this message translates to:
@@ -1015,6 +1021,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Profile'**
   String get navProfile;
+
+  /// No description provided for @navSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Settings'**
+  String get navSettings;
 
   /// No description provided for @greetMorning.
   ///
