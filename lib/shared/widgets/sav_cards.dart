@@ -43,6 +43,52 @@ class SavCard extends StatelessWidget {
 }
 
 /// Selectable chip (v45 `.chip`) with 44px hit target.
+// class SavChip extends StatelessWidget {
+//   const SavChip({
+//     super.key,
+//     required this.label,
+//     required this.selected,
+//     required this.onTap,
+//   });
+//
+//   final String label;
+//   final bool selected;
+//   final VoidCallback onTap;
+//
+//   @override
+//   Widget build(BuildContext context) {
+//     return Material(
+//       color: selected ? SavColors.navy : SavColors.surface,
+//       borderRadius: SavRadius.pill,
+//       child: InkWell(
+//         borderRadius: SavRadius.pill,
+//         onTap: onTap,
+//         child: Container(
+//           // constraints: const BoxConstraints(minHeight: SavSpace.x24,),
+//           padding: const EdgeInsets.symmetric(
+//               horizontal: SavSpace.x14, vertical: SavSpace.x10),
+//           decoration: BoxDecoration(
+//             borderRadius: SavRadius.pill,
+//             border: Border.all(
+//               color: selected ? SavColors.navy : SavColors.border,
+//               width: 1.5,
+//             ),
+//           ),
+//           alignment: Alignment.center,
+//           child: Text(
+//             label,
+//             style: TextStyle(
+//               fontFamily: SavFonts.sans,
+//               fontSize: 13,
+//               fontWeight: FontWeight.w600,
+//               color: selected ? Colors.white : SavColors.txt2,
+//             ),
+//           ),
+//         ),
+//       ),
+//     );
+//   }
+// }
 class SavChip extends StatelessWidget {
   const SavChip({
     super.key,
@@ -57,34 +103,96 @@ class SavChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final borderRadius = BorderRadius.circular(4);
+
     return Material(
       color: selected ? SavColors.navy : SavColors.surface,
-      borderRadius: SavRadius.pill,
+      borderRadius: borderRadius,
       child: InkWell(
-        borderRadius: SavRadius.pill,
         onTap: onTap,
-        child: Container(
-          constraints: const BoxConstraints(minHeight: SavSpace.minTouch),
-          padding: const EdgeInsets.symmetric(
-              horizontal: SavSpace.x14, vertical: SavSpace.x10),
+        borderRadius: borderRadius,
+        child: DecoratedBox(
           decoration: BoxDecoration(
-            borderRadius: SavRadius.pill,
+            borderRadius: borderRadius,
             border: Border.all(
-              color: selected ? SavColors.navy : SavColors.border,
-              width: 1.5,
+              color: selected
+                  ? SavColors.navy
+                  : SavColors.border,
+              width: 1,
             ),
           ),
-          alignment: Alignment.center,
-          child: Text(
-            label,
-            style: TextStyle(
-              fontFamily: SavFonts.sans,
-              fontSize: 13,
-              fontWeight: FontWeight.w600,
-              color: selected ? Colors.white : SavColors.txt2,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: SavSpace.x14,
+              vertical: SavSpace.x10,
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  label,
+                  maxLines: 1,
+                  softWrap: false,
+                  style: TextStyle(
+                    fontFamily: SavFonts.sans,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: selected
+                        ? Colors.white
+                        : SavColors.txt2,
+                  ),
+                ),
+              ],
             ),
           ),
         ),
+      ),
+    );
+  }
+}
+/// Boxed label/value fact (v56 request-detail "Method" / "Household" /
+/// "Weight" tiles) — a light filled tile, distinct from the plain label/value
+/// rows used for categories, dietary, and allergens.
+class SavFactBox extends StatelessWidget {
+  const SavFactBox({super.key, required this.label, required this.value});
+
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      constraints: const BoxConstraints(minWidth: 120),
+      padding: const EdgeInsets.symmetric(
+          horizontal: SavSpace.x12, vertical: SavSpace.x10),
+      decoration: const BoxDecoration(
+        color: SavColors.page,
+        borderRadius: SavRadius.field,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            label,
+            style: const TextStyle(
+              fontFamily: SavFonts.sans,
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+              color: SavColors.txt3,
+            ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            value,
+            style: const TextStyle(
+              fontFamily: SavFonts.sans,
+              fontSize: 14,
+              fontWeight: FontWeight.w700,
+              color: SavColors.navy,
+            ),
+          ),
+        ],
       ),
     );
   }

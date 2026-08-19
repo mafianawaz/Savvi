@@ -64,7 +64,9 @@ class SavFeedback {
       );
   }
 
-  /// Confirm dialog returning true/false. [confirmLabel]/[cancelLabel] are
+  /// Confirm bottom sheet returning true/false (v56 pattern — a serif
+  /// title, a plain-language body, and full-width stacked actions with the
+  /// primary/destructive action on top). [confirmLabel]/[cancelLabel] are
   /// passed in already-localised.
   static Future<bool> confirm(
     BuildContext context, {
@@ -74,29 +76,65 @@ class SavFeedback {
     required String cancelLabel,
     bool destructive = false,
   }) async {
-    final result = await showDialog<bool>(
+    final result = await showModalBottomSheet<bool>(
       context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: SavColors.surface,
-        shape: const RoundedRectangleBorder(borderRadius: SavRadius.card),
-        title: Text(title, style: Theme.of(ctx).textTheme.titleMedium),
-        content: Text(message, style: Theme.of(ctx).textTheme.bodyMedium),
-        actions: [
-          SavButton(
-            label: cancelLabel,
-            variant: SavButtonVariant.ghost,
-            expand: false,
-            onPressed: () => Navigator.of(ctx).pop(false),
+      isScrollControlled: true,
+      backgroundColor: SavColors.surface,
+      shape: const RoundedRectangleBorder(borderRadius: SavRadius.sheet),
+      builder: (ctx) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(
+              SavSpace.x20, SavSpace.x12, SavSpace.x20, SavSpace.x20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  width: 36,
+                  height: 4,
+                  margin: const EdgeInsets.only(bottom: SavSpace.x20),
+                  decoration: BoxDecoration(
+                    color: SavColors.border,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              Text(
+                title,
+                style: const TextStyle(
+                  fontFamily: SavFonts.serif,
+                  fontSize: 20,
+                  color: SavColors.navy,
+                ),
+              ),
+              const SizedBox(height: SavSpace.x8),
+              Text(
+                message,
+                style: const TextStyle(
+                  fontFamily: SavFonts.sans,
+                  fontSize: 13.5,
+                  height: 1.45,
+                  fontWeight: FontWeight.w500,
+                  color: SavColors.txt3,
+                ),
+              ),
+              const SizedBox(height: SavSpace.x20),
+              SavButton(
+                label: confirmLabel,
+                variant:
+                    destructive ? SavButtonVariant.danger : SavButtonVariant.primary,
+                onPressed: () => Navigator.of(ctx).pop(true),
+              ),
+              const SizedBox(height: SavSpace.x10),
+              SavButton(
+                label: cancelLabel,
+                variant: SavButtonVariant.ghost,
+                onPressed: () => Navigator.of(ctx).pop(false),
+              ),
+            ],
           ),
-          SavButton(
-            label: confirmLabel,
-            variant: destructive
-                ? SavButtonVariant.danger
-                : SavButtonVariant.primary,
-            expand: false,
-            onPressed: () => Navigator.of(ctx).pop(true),
-          ),
-        ],
+        ),
       ),
     );
     return result ?? false;

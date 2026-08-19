@@ -106,19 +106,32 @@ class _ProfileScreenState extends State<ProfileScreen> {
         backgroundColor: SavColors.surface,
         elevation: 0,
         scrolledUnderElevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: SavColors.navy),
-          onPressed: Get.back,
-        ),
-        title: Text(
-          l.profileTitle,
-          style: const TextStyle(
-            fontFamily: SavFonts.serif,
-            fontSize: 18,
-            color: SavColors.navy,
+        automaticallyImplyLeading: false,
+        title: InkWell(
+          borderRadius: SavRadius.field,
+          onTap: () => Get.back(),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(
+                horizontal: SavSpace.x8, vertical: SavSpace.x8),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.arrow_back, size: 20, color: SavColors.navy),
+                const SizedBox(width: SavSpace.x6),
+                Text(
+                  l.actionBack,
+                  style: const TextStyle(
+                    fontFamily: SavFonts.sans,
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                    color: SavColors.navy,
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
-        centerTitle: true,
+        centerTitle: false,
       ),
       body: Obx(() {
         final st = _controller.state.value;
@@ -132,90 +145,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
           children: [
             if (_shellController.requestReturn.value) _returnBanner(l),
-            // Header
+            _heroCard(l, name),
+            const SizedBox(height: SavSpace.x20),
             Text(
-              name.isEmpty ? l.profileTitle : name,
+              l.personalInformation,
               style: const TextStyle(
                 fontFamily: SavFonts.serif,
-                fontSize: 24,
+                fontSize: 20,
+                fontWeight: FontWeight.w700,
                 color: SavColors.navy,
               ),
             ),
-            const SizedBox(height: 2),
-            Text(
-              '${(p['memberId'] as String?) ?? ''} · ${(p['nonprofit'] as String?) ?? ''}',
-              style: const TextStyle(
-                fontFamily: SavFonts.sans,
-                fontSize: 13,
-                fontWeight: FontWeight.w500,
-                color: SavColors.txt3,
-              ),
-            ),
-            const SizedBox(height: SavSpace.x8),
-            Align(
-              alignment: Alignment.centerLeft,
-              child: StatusPill(
-                status: RequestStatus.approved,
-                label: l.stApproved,
-              ),
-            ),
-            const SizedBox(height: SavSpace.x16),
-            // Member bar
-            Container(
-              padding: const EdgeInsets.all(SavSpace.x16),
-              decoration: BoxDecoration(
-                color: SavColors.navy,
-                borderRadius: SavRadius.card,
-              ),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          l.householdOf(_householdOption(st.household)),
-                          style: const TextStyle(
-                            fontFamily: SavFonts.sans,
-                            fontSize: 15,
-                            fontWeight: FontWeight.w700,
-                            color: Colors.white,
-                          ),
-                        ),
-                        Text(
-                          l.usedInRequests,
-                          style: const TextStyle(
-                            fontFamily: SavFonts.sans,
-                            fontSize: 12,
-                            fontWeight: FontWeight.w500,
-                            color: Color(0xAAFFFFFF),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: SavSpace.x10,
-                      vertical: SavSpace.x4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: SavColors.green,
-                      borderRadius: SavRadius.pill,
-                    ),
-                    child: Text(
-                      l.activeLabel,
-                      style: const TextStyle(
-                        fontFamily: SavFonts.sans,
-                        fontSize: 11,
-                        fontWeight: FontWeight.w700,
-                        color: SavColors.navy,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
+            const SizedBox(height: SavSpace.x12),
+            _householdSummaryCard(l, st),
             const SizedBox(height: SavSpace.x12),
             _contactCard(l, st),
             const SizedBox(height: SavSpace.x12),
@@ -227,6 +169,183 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ],
         );
       }),
+    );
+  }
+
+  /// Full-width navy hero (v56): circular avatar, name, member id ·
+  /// nonprofit, and an "Approved" dot-pill — replaces the old plain-text
+  /// header that sat directly on the page background.
+  Widget _heroCard(AppLocalizations l, String name) {
+    final p = _profile;
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(
+        horizontal: SavSpace.x20,
+        vertical: SavSpace.x24,
+      ),
+      decoration: const BoxDecoration(
+        color: SavColors.navy,
+        borderRadius: SavRadius.card,
+      ),
+      child: Column(
+        children: [
+          Container(
+            width: 88,
+            height: 88,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              border: Border.all(color: const Color(0x33FFFFFF), width: 2),
+            ),
+            child: ClipOval(
+              child: Image.asset(
+                SavImages.logo,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stack) => Container(
+                  color: const Color(0x1AFFFFFF),
+                  child: const Icon(
+                    Icons.person_outline,
+                    size: 36,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: SavSpace.x14),
+          Text(
+            name.isEmpty ? l.profileTitle : name,
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              fontFamily: SavFonts.serif,
+              fontSize: 22,
+              fontWeight: FontWeight.w700,
+              color: Colors.white,
+            ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            '${(p['memberId'] as String?) ?? ''} · ${(p['nonprofit'] as String?) ?? ''}',
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              fontFamily: SavFonts.sans,
+              fontSize: 13,
+              fontWeight: FontWeight.w500,
+              color: Color(0xAAFFFFFF),
+            ),
+          ),
+          const SizedBox(height: SavSpace.x12),
+          Container(
+            padding: const EdgeInsets.symmetric(
+              horizontal: SavSpace.x10,
+              vertical: SavSpace.x6,
+            ),
+            decoration:  BoxDecoration(
+              color: SavColors.green.withOpacity(0.05),
+              borderRadius: SavRadius.pill,
+              border: Border.all(color: SavColors.greenDark)
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 6,
+                  height: 6,
+                  decoration: const BoxDecoration(
+                    color: SavColors.greenDark,
+                    shape: BoxShape.circle,
+                  ),
+                ),
+                const SizedBox(width: SavSpace.x6),
+                Text(
+                  l.stApproved,
+                  style: const TextStyle(
+                    fontFamily: SavFonts.sans,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                    color: SavColors.greenDark,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// "Household of N" summary card (v56): a plain white card with a small
+  /// photo thumbnail, household size, and an "Active" pill — distinct from
+  /// the navy hero above and from the editable "Household size" card below.
+  Widget _householdSummaryCard(AppLocalizations l, EditProfileState st) {
+    return SavCard(
+      child: Row(
+        children: [
+          ClipRRect(
+            borderRadius: SavRadius.field,
+            child: SizedBox(
+              width: 44,
+              height: 44,
+              child: Image.asset(
+                SavImages.approved,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stack) => Container(
+                  color: SavColors.greenLight,
+                  child: const Icon(
+                    Icons.home_outlined,
+                    size: 20,
+                    color: SavColors.greenDark,
+                  ),
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: SavSpace.x12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  l.householdOf(_householdOption(st.household)),
+                  style: const TextStyle(
+                    fontFamily: SavFonts.sans,
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                    color: SavColors.navy,
+                  ),
+                ),
+                Text(
+                  l.usedInRequests,
+                  style: const TextStyle(
+                    fontFamily: SavFonts.sans,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                    color: SavColors.txt3,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.symmetric(
+              horizontal: SavSpace.x10,
+              vertical: SavSpace.x4,
+            ),
+            decoration: BoxDecoration(
+              color: SavColors.greenLight,
+              borderRadius: SavRadius.pill,
+            ),
+            child: Text(
+              l.activeLabel,
+              style: const TextStyle(
+                fontFamily: SavFonts.sans,
+                fontSize: 11,
+                fontWeight: FontWeight.w700,
+                color: SavColors.pillGreenFg,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -315,6 +434,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           child: Column(
             children: [
               SavField(
+                required: true,
                 label: l.fieldEmail,
                 controller: _email,
                 keyboardType: TextInputType.emailAddress,
@@ -322,6 +442,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
               const SizedBox(height: SavSpace.x10),
               SavField(
+                required: true,
                 label: l.fieldPhone,
                 controller: _phone,
                 keyboardType: TextInputType.phone,
@@ -330,6 +451,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
               const SizedBox(height: SavSpace.x10),
               SavField(
+                required: true,
                 label: l.fieldStreet,
                 controller: _street,
                 validator: Validators.required(l),
@@ -351,6 +473,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
               const SizedBox(height: SavSpace.x10),
               SavField(
+                required: true,
                 label: l.fieldZip,
                 controller: _zip,
                 keyboardType: TextInputType.number,
@@ -405,18 +528,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
       children: [
         DropdownButtonFormField<String>(
           value: _householdOption(st.household),
-          decoration: InputDecoration(
+          decoration: const InputDecoration(
             filled: true,
             fillColor: SavColors.page,
             border: OutlineInputBorder(
               borderRadius: SavRadius.field,
-              borderSide: const BorderSide(color: SavColors.border),
+              borderSide: BorderSide(color: SavColors.border),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: SavRadius.field,
-              borderSide: const BorderSide(color: SavColors.border),
+              borderSide: BorderSide(color: SavColors.border),
             ),
-            contentPadding: const EdgeInsets.symmetric(
+            contentPadding: EdgeInsets.symmetric(
               horizontal: SavSpace.x14,
               vertical: SavSpace.x12,
             ),

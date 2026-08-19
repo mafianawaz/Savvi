@@ -186,8 +186,7 @@ class NotifPrefsScreen extends StatelessWidget {
         ),
         centerTitle: true,
       ),
-      body: Obx(() {
-        return ListView(
+      body: ListView(
           padding: const EdgeInsets.fromLTRB(
             SavSpace.x16,
             SavSpace.x12,
@@ -237,8 +236,7 @@ class NotifPrefsScreen extends StatelessWidget {
               tone: NoticeTone.neutral,
             ),
           ],
-        );
-      }),
+        )
     );
   }
 }

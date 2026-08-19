@@ -146,8 +146,9 @@ class MockSavviApi implements SavviApi {
         // DEMO pickup code + QR token — backend-issued in production.
         'pickupCode': 'PKU-0006',
         'pickupQrToken': 'SVVI-PK-0006-8823',
-        'windowStart': _at(13, 0, -35),
-        'windowEnd': _at(16, 0, -35),
+        'windowStart': _at(13, 0, 2),
+        'windowEnd': _at(16, 0, 2),
+        'location': '2311 Canal St, Houston, TX 77003',
       });
 
   @override
@@ -192,6 +193,11 @@ class MockSavviApi implements SavviApi {
       'cats': ['produce', 'pantry', 'baby_food'],
       'household': '3',
       'weightLb': null,
+      'statusHistory': {
+        'submitted': _at(8, 40),
+        'approved': _at(11, 52),
+        'preparing': _at(11, 53),
+      },
     },
     {
       'id': 'SAV-REQ-26-0013',
@@ -204,6 +210,13 @@ class MockSavviApi implements SavviApi {
       'etaLo': 20,
       'etaHi': 30,
       'distanceMi': 3.2,
+      'statusHistory': {
+        'submitted': _at(8, 0),
+        'approved': _at(8, 45),
+        'scheduled': _at(8, 52),
+        'preparing': _at(9, 0),
+        'out_for_delivery': _at(9, 32),
+      },
     },
     {
       'id': 'SAV-REQ-26-0006',
@@ -213,6 +226,14 @@ class MockSavviApi implements SavviApi {
       'cats': ['produce', 'bakery_bread', 'snacks_beverages'],
       'household': '3',
       'weightLb': 24,
+      'statusHistory': {
+        'submitted': _at(9, 10, -35),
+        'approved': _at(10, 5, -35),
+        'preparing': _at(11, 0, -35),
+        'ready_pickup': _at(13, 15, -35),
+        'pickup_confirmed': _at(15, 40, -35),
+        'completed': _at(15, 41, -35),
+      },
     },
   ];
 

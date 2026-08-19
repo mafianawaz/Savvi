@@ -20,6 +20,10 @@ class MemberRequest {
     this.allergens = const [],
     this.notes,
     this.pickupCode,
+    this.statusHistory = const {},
+    this.pickupWindowStart,
+    this.pickupWindowEnd,
+    this.pickupLocation,
   });
 
   final String id;
@@ -36,6 +40,19 @@ class MemberRequest {
   final List<Allergen> allergens;
   final String? notes;
   final String? pickupCode;
+
+  /// Pickup window and location — populated from [SavviApi.getPickup], not
+  /// present on the list/detail payload. Null until the pickup screen has
+  /// fetched them.
+  final DateTime? pickupWindowStart;
+  final DateTime? pickupWindowEnd;
+  final String? pickupLocation;
+
+  /// When each status in this request's timeline was reached, keyed by the
+  /// status itself. Drives the per-step timestamp shown on the progress
+  /// timeline. A status with no entry (not yet reached, or history not
+  /// provided by the backend) simply renders without a time.
+  final Map<RequestStatus, DateTime> statusHistory;
 
   /// Statuses that represent a finished/closed request (no longer in progress).
   static const _closed = <RequestStatus>{
@@ -77,6 +94,38 @@ class MemberRequest {
             ? (j['notes'] as String).trim()
             : null,
         pickupCode: j['pickupCode'] as String?,
+        statusHistory: {
+          for (final entry in (j['statusHistory'] as Map? ?? const {}).entries)
+            if (RequestStatus.tryFromApi(entry.key as String) case final s?)
+              s: DateTime.tryParse(entry.value?.toString() ?? '') ?? DateTime.now(),
+        },
+      );
+
+  /// Returns a copy with pickup code/window/location merged in from a
+  /// [SavviApi.getPickup] response — used by the pickup screen, which fetches
+  /// those separately since they aren't on the list/detail payload.
+  MemberRequest withPickupDetails(Map<String, dynamic> pk) => MemberRequest(
+        id: id,
+        method: method,
+        status: status,
+        createdAt: createdAt,
+        categories: categories,
+        household: household,
+        weightLb: weightLb,
+        etaLo: etaLo,
+        etaHi: etaHi,
+        distanceMi: distanceMi,
+        diet: diet,
+        allergens: allergens,
+        notes: notes,
+        statusHistory: statusHistory,
+        pickupCode: pk['pickupCode'] as String? ?? pickupCode,
+        pickupWindowStart:
+            DateTime.tryParse(pk['windowStart']?.toString() ?? '') ??
+                pickupWindowStart,
+        pickupWindowEnd: DateTime.tryParse(pk['windowEnd']?.toString() ?? '') ??
+            pickupWindowEnd,
+        pickupLocation: pk['location'] as String? ?? pickupLocation,
       );
 }
 
