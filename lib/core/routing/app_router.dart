@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../features/app/stage_placeholder.dart';
+import '../../features/auth/auth_controller.dart';
 import '../../features/auth/sign_in_screen.dart';
 import '../../features/access/access_link_screen.dart';
 import '../../features/access/qr_access_screen.dart';
@@ -13,6 +14,7 @@ import '../../features/forgot_password/password_update_screen.dart';
 import '../../features/onboarding/create_profile_screen.dart';
 import '../../features/onboarding/approval_screen.dart';
 import '../../features/home/main_shell.dart';
+import '../../features/request/request_controller.dart';
 import '../../features/request/request_wizard_screen.dart';
 import '../../features/activity/request_detail_screen.dart';
 import '../../features/activity/request_detail_controller.dart';
@@ -26,6 +28,7 @@ import '../../features/profile/profile_screen.dart';
 import '../../features/settings/settings_screen.dart';
 import '../../features/settings/security_screen.dart';
 import '../../data/models/onboarding.dart';
+import '../network/savvi_api.dart';
 
 class Routes {
   Routes._();
@@ -106,11 +109,23 @@ class AppPages {
       const MainShell(),
     ),
 
+    // GetPage(
+    //   name: Routes.request,
+    //   page: () =>  RequestWizardScreen(),
+    // ),
     GetPage(
       name: Routes.request,
-      page: () => const RequestWizardScreen(),
+      binding: BindingsBuilder(() {
+        Get.put<RequestController>(
+          RequestController(
+            api: Get.find<SavviApi>(),
+            authController: Get.find<AuthController>(),
+          ),
+          permanent: false,
+        );
+      }),
+      page: () => RequestWizardScreen(),
     ),
-
     GetPage(
       name: Routes.requestDetail,
       page: () => RequestDetailScreen(

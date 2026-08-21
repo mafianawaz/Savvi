@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../core/network/savvi_api.dart';
 import '../../core/routing/app_router.dart';
 import '../../core/state/shell_nav.dart';
 import '../../core/theme/tokens.dart';
@@ -10,6 +11,7 @@ import '../../shared/patterns/error_text.dart';
 import '../../shared/patterns/feedback.dart';
 import '../../shared/widgets/sav_button.dart';
 import '../../shared/widgets/sav_inputs.dart';
+import '../auth/auth_controller.dart';
 import 'request_controller.dart';
 import 'package:get/get.dart';
 
@@ -29,10 +31,12 @@ String _formatHouseholdPeople(AppLocalizations l, String? raw) {
   if (n == null || n <= 0) return l.rvNone;
   return l.householdPeople(n);
 }
-class RequestWizardScreen extends GetView<RequestController> {
-  const RequestWizardScreen({super.key});
+class RequestWizardScreen extends StatelessWidget {
+   RequestWizardScreen({super.key});
 
-  @override
+   RequestController get controller => Get.find<RequestController>();
+
+   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context);
 
