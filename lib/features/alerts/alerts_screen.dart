@@ -187,7 +187,7 @@ class _AlertCardState extends State<_AlertCard> {
                 fit: StackFit.expand,
                 children: [
                   Image.asset(
-                    isHot ? SavImages.actCard1 : SavImages.actCard2,
+                    isHot ? SavImages.eventCard : SavImages.eventCard1,
                     fit: BoxFit.cover,
                     errorBuilder: (context, error, stack) => Container(
                       color: accentBg,

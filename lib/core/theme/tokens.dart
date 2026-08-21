@@ -38,14 +38,12 @@ class SavColors {
   static const surface = Color(0xFFFFFFFF);
   static const border = Color(0xFFE9ECF0);
 
-  // Text — v45 two-step muted scale (both pass WCAG AA on white and page).
-  //   txt3 #4B5563 = 7.56:1 on white   |  txt4 #6B7280 = 4.83:1 on white
+
   static const txt = Color(0xFF111827);
   static const txt2 = Color(0xFF374151);
   static const txt3 = Color(0xFF4B5563);
   static const txt4 = Color(0xFF6B7280);
 
-  // Semantic text-on-fill (from v45 pill colours)
   static const pillGreenFg = Color(0xFF166534);
   static const pillBlueFg = Color(0xFF0369A1);
   static const pillAmberFg = Color(0xFF92400E);
@@ -82,9 +80,6 @@ class SavSpace {
   static const x16 = 16.0;
   static const x20 = 20.0;
   static const x24 = 24.0;
-
-  /// Minimum tappable dimension. Enforced on all interactive shared widgets
-  /// (v45 accessibility decision: 44px minimum touch targets).
   static const minTouch = 44.0;
 }
 
@@ -127,6 +122,9 @@ class SavImages{
   static const String request = "assets/images/request.jpg";
   static const String shelfStable = "assets/images/shelf_stable.jpg";
   static const String dairy = "assets/images/shelf_stable.jpg";
+  static const String eventCard = "assets/images/event_card.png";
+  static const String eventCard1 = "assets/images/event_card_1.png";
+  static const String eventCard2 = "assets/images/event_card_2.png";
 
   static String category(FoodCategory category) => switch (category) {
     FoodCategory.produce => produce,
