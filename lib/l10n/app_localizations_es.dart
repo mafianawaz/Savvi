@@ -1172,7 +1172,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get settingsSub => 'Administra tu cuenta y obtén ayuda.';
 
   @override
-  String get sPersonal => 'Información personal';
+  String get sPersonal => 'Perfil';
 
   @override
   String get sPersonalDesc => 'Nombre, contacto, dirección, hogar';
@@ -1320,4 +1320,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get confirmPasswordMismatch => 'Las contraseñas no coinciden.';
+
+  @override
+  String get edit => 'Editar';
 }

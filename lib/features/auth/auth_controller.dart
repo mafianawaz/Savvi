@@ -1,6 +1,10 @@
 import 'package:flutter/cupertino.dart';
+import '../../core/auth/token_storage.dart';
+import '../../core/auth/user_storage.dart';
+import '../../data/models/user.dart';
 import '../../core/localization/locale_controller.dart';
 import '../../core/network/savvi_api.dart';
+import '../../core/network/api_result.dart';
 import '../../core/routing/app_router.dart';
 import 'package:get/get.dart';
 import '../../l10n/app_localizations.dart';
@@ -28,8 +32,9 @@ class AuthBusy extends AuthState {
 }
 
 class AuthSignedIn extends AuthState {
-  const AuthSignedIn(this.profile);
+  const AuthSignedIn({required this.user, required this.profile});
 
+  final UserModel user;
   final Map<String, dynamic> profile;
 }
 
@@ -42,37 +47,89 @@ class AuthFailed extends AuthState {
 class AuthController extends GetxController {
   AuthController({
     required this.api,
+    required this.tokenStorage,
+    required this.userStorage,
   });
 
   final SavviApi api;
+  final TokenStorage tokenStorage;
+  final UserStorage userStorage;
 
   /// Current authentication state.
   // final Rx<AuthState> state = const AuthSignedOut().obs;
   final Rx<AuthState> state = Rx<AuthState>(const AuthSignedOut());
+
+  @override
+  void onInit() {
+    super.onInit();
+    restoreSession();
+  }
+
+  /// Restores the last persisted API session without making a network call.
+  /// The first authenticated API request will still validate the token.
+  void restoreSession() {
+    final savedUser = userStorage.user;
+    if (tokenStorage.hasAccessToken && savedUser != null) {
+      state.value = AuthSignedIn(
+        user: savedUser,
+        profile: savedUser.toProfileMap(),
+      );
+    }
+  }
   /// Sign in with email + password.
   ///
-  /// Later stage: authenticate with Firebase, then call SavviApi.session()
-  /// with the resulting ID token. Stage 2 calls the mock session() so the
-  /// UI flow is exercised end to end.
+  /// Authenticate directly against the Savvi backend. The returned bearer
+  /// token and typed user are persisted for subsequent API calls and app
+  /// restarts.
   Future<AuthState> signIn({
     required String email,
     required String password,
   }) async {
     state.value = const AuthBusy();
 
-    final result = await api.session();
-
-    final next = result.when(
-      ok: (data) => AuthSignedIn(data),
-      err: (f) => AuthFailed(f.messageKey),
+    final result = await api.login(
+      email: email,
+      password: password,
     );
 
+    if (result is ApiErr<Map<String, dynamic>>) {
+      final next = AuthFailed(result.failure.messageKey);
+      state.value = next;
+      return next;
+    }
+
+    final data = (result as ApiOk<Map<String, dynamic>>).data;
+    final token = data['token']?.toString() ?? '';
+    final rawUser = data['user'];
+
+    if (token.isEmpty || rawUser is! Map) {
+      const next = AuthFailed('err_unknown');
+      state.value = next;
+      return next;
+    }
+
+    final user = UserModel.fromJson(Map<String, dynamic>.from(rawUser));
+    if (user.id.isEmpty || user.email.isEmpty) {
+      const next = AuthFailed('err_unknown');
+      state.value = next;
+      return next;
+    }
+
+    await tokenStorage.save(accessToken: token);
+    await userStorage.save(user);
+
+    final next = AuthSignedIn(
+      user: user,
+      profile: user.toProfileMap(),
+    );
     state.value = next;
     return next;
   }
 
   void signOut() {
     state.value = const AuthSignedOut();
+    tokenStorage.clear();
+    userStorage.clear();
   }
 
   /// Merge updated fields into the signed-in profile so edits made on the
@@ -81,16 +138,25 @@ class AuthController extends GetxController {
     final current = state.value;
 
     if (current is AuthSignedIn) {
-      state.value = AuthSignedIn({
-        ...current.profile,
-        ...updates,
-      });
+      final merged = {...current.profile, ...updates};
+      final updatedUser = UserModel.fromJson(merged);
+      state.value = AuthSignedIn(
+        user: updatedUser,
+        profile: updatedUser.toProfileMap(),
+      );
+      userStorage.save(updatedUser);
     }
   }
 
   bool get isBusy => state.value is AuthBusy;
 
   bool get isSignedIn => state.value is AuthSignedIn;
+
+  /// Typed signed-in user. Prefer this for new feature code.
+  UserModel? get user {
+    final current = state.value;
+    return current is AuthSignedIn ? current.user : null;
+  }
 
   Map<String, dynamic>? get profile {
     final current = state.value;
@@ -124,7 +190,6 @@ class SignInController extends GetxController {
     // singletons registered in main.dart before runApp(), so a plain
     // Get.find is correct and safe here.
     authController = Get.find<AuthController>();
-    accessController = Get.find<AccessController>();
     profileController = Get.find<EditProfileController>();
     localeController = Get.find<LocaleController>();
   }
@@ -136,7 +201,9 @@ class SignInController extends GetxController {
     /// Landing on sign-in is the entry point; clear any in-progress
     /// onboarding state so a prior, abandoned attempt can't leave a stale
     /// verified grant.
-    accessController.reset();
+    if (Get.isRegistered<AccessController>()) {
+      Get.delete<AccessController>(force: true);
+    }
     profileController.refreshFromProfile();
   }
 

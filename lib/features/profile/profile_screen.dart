@@ -446,7 +446,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 label: l.fieldPhone,
                 controller: _phone,
                 keyboardType: TextInputType.phone,
-                helper: l.phoneNote,
+                // helper: l.phoneNote,
                 validator: Validators.phoneRequired(l),
               ),
               const SizedBox(height: SavSpace.x10),

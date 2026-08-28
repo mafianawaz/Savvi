@@ -266,9 +266,9 @@
   "s1Sub": "Select one or more categories.",
   "s2Title": "Pickup or delivery?",
   "s2Sub": "Choose how you'd like to receive your support.",
-  "s3Title": "Household & contact",
+  "s3Title": "Household & Contact",
   "s3Sub": "These come from your profile. Update them there if anything has changed.",
-  "s4Title": "Dietary & allergens",
+  "s4Title": "Diet & Allergens",
   "s4Sub": "Sent to the nonprofit for packing only.",
   "s5Title": "Review your request",
   "s5Sub": "Check everything before you submit.",
@@ -437,12 +437,12 @@
   "householdConfirm": "Please confirm your household size.",
   "settingsTitle": "Settings",
   "settingsSub": "Manage your account and get help.",
-  "sPersonal": "Personal information",
+  "sPersonal": "Profile",
   "sPersonalDesc": "Name, contact, address, household",
   "sLang": "Language",
   "sNotif": "Notifications",
   "sNotifDesc": "Channels and preferences",
-  "sSecurity": "Security & password",
+  "sSecurity": "Security & Password",
   "sSecurityDesc": "Update your password",
   "sHelp": "Help & Support",
   "sHelpDesc": "Contact your nonprofit partner",
@@ -464,13 +464,21 @@
   "checkYourInboxTitle": "Check your inbox.",
   "resetLinkSentBody": "We sent a reset link to {email}. The link expires in 15 minutes.",
   "@resetLinkSentBody": {
-    "placeholders": { "email": { "type": "String" } }
+    "placeholders": {
+      "email": {
+        "type": "String"
+      }
+    }
   },
   "iHaveTheLink": "I have the link →",
   "resendLinkBtn": "Resend link",
   "resendInSeconds": "Resend in {seconds}s",
   "@resendInSeconds": {
-    "placeholders": { "seconds": { "type": "int" } }
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
   },
   "newPasswordTitle": "New password",
   "newPasswordSubtitle": "At least 8 characters with uppercase, number, and special character.",
@@ -487,8 +495,13 @@
   "checkInboxTitle": "Check your inbox.",
   "checkInboxBody": "We sent a reset link to {email}. The link expires in 15 minutes.",
   "@checkInboxBody": {
-    "placeholders": { "email": { "type": "String" } }
+    "placeholders": {
+      "email": {
+        "type": "String"
+      }
+    }
   },
   "resendLink": "Resend link",
-  "confirmPasswordMismatch": "Passwords don't match."
+  "confirmPasswordMismatch": "Passwords don't match.",
+  "edit": "Edit"
 }

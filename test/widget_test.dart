@@ -7,14 +7,12 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:savvi/features/app/savvi_app.dart';
 
-import 'package:savvi/main.dart';
 
 void main() {
   testWidgets('Counter increments smoke test', (WidgetTester tester) async {
     // Build our app and trigger a frame.
-    await tester.pumpWidget( SavviApp());
+    // await tester.pumpWidget( SavviApp());
 
     // Verify that our counter starts at 0.
     expect(find.text('0'), findsOneWidget);

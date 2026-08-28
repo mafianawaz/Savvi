@@ -23,7 +23,13 @@ import 'api_result.dart';
 /// keeping Stage 1 free of generated code.
 abstract interface class SavviApi {
   // ── Auth / session ─────────────────────────────────────────────────────────
-  /// Exchange a signed-in Firebase user for a Savvi session + member profile.
+  /// Authenticate against the Savvi backend and return the user payload.
+  Future<ApiResult<Map<String, dynamic>>> login({
+    required String email,
+    required String password,
+  });
+
+  /// Legacy session contract kept for compatibility with older flows.
   Future<ApiResult<Map<String, dynamic>>> session();
 
   /// Verify a nonprofit access link or code. Backend classifies it as
@@ -49,9 +55,20 @@ abstract interface class SavviApi {
   /// Persist the member's language preference (en-US | es-US) server-side.
   Future<ApiResult<void>> setLanguagePreference(String localeTag);
 
-  /// Requests a password reset link for [email] via the auth provider
-  /// (Firebase Auth in production). The frontend never stores passwords.
+  /// Public password-reset request. No bearer token.
   Future<ApiResult<void>> sendPasswordReset(String email);
+
+  /// Public password-reset OTP verification. No bearer token.
+  Future<ApiResult<Map<String, dynamic>>> verifyPasswordResetOtp({
+    required String email,
+    required int otp,
+  });
+
+  /// Public password reset. No bearer token.
+  Future<ApiResult<void>> resetPassword({
+    required String email,
+    required String password,
+  });
 
   /// Persist notification channel preferences (in-app always on; push/email).
   Future<ApiResult<void>> setNotificationPreferences(Map<String, bool> prefs);

@@ -15,7 +15,7 @@ import '../../core/network/savvi_api.dart';
 /// This class deliberately performs NO official record generation. Where it
 /// echoes an ID (e.g. after createRequest) it reuses a fixed demo string and is
 /// annotated as such.
-class MockSavviApi implements SavviApi {
+abstract class MockSavviApi implements SavviApi {
   static const _delay = Duration(milliseconds: 450);
 
   Future<ApiResult<T>> _ok<T>(T data) async {
@@ -80,6 +80,20 @@ class MockSavviApi implements SavviApi {
 
   @override
   Future<ApiResult<void>> sendPasswordReset(String email) => _ok(null);
+
+  @override
+  Future<ApiResult<Map<String, dynamic>>> verifyPasswordResetOtp({
+    required String email,
+    required int otp,
+  }) =>
+      _ok({'verified': true});
+
+  @override
+  Future<ApiResult<void>> resetPassword({
+    required String email,
+    required String password,
+  }) =>
+      _ok(null);
 
   @override
   Future<ApiResult<void>> setNotificationPreferences(Map<String, bool> p) =>

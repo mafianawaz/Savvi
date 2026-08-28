@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-import '../../core/auth/firebase_auth_gateaway.dart';
 import '../../core/theme/tokens.dart';
 import '../../l10n/app_localizations.dart';
 import '../../shared/widgets/password_field.dart';
 import '../../shared/widgets/sav_button.dart';
 import '../../shared/widgets/sav_inputs.dart';
 import 'new_password_controller.dart';
+import '../../core/network/savvi_api.dart';
 
 class NewPasswordScreen extends StatelessWidget {
   const NewPasswordScreen({super.key});
@@ -17,13 +17,10 @@ class NewPasswordScreen extends StatelessWidget {
     final l = AppLocalizations.of(context);
     final args = Get.arguments as Map? ?? {};
     final email = args['email'] as String? ?? '';
-    final oobCode = args['oobCode'] as String? ?? '';
-
     return GetBuilder<NewPasswordController>(
       init: NewPasswordController(
-        authGateway: Get.find<FirebaseAuthGateway>(),
+        api: Get.find<SavviApi>(),
         email: email,
-        oobCode: oobCode,
       ),
       builder: (controller) {
         return Scaffold(

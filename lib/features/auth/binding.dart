@@ -1,6 +1,8 @@
 import 'package:get/get.dart';
 
 import '../../core/formatting/formatters.dart';
+import '../../core/auth/token_storage.dart';
+import '../../core/auth/user_storage.dart';
 import '../../core/localization/locale_controller.dart';
 import '../../core/network/savvi_api.dart';
 import '../../core/state/shell_nav.dart';
@@ -17,13 +19,10 @@ class InitialBinding extends Bindings {
 
 
     Get.put<AuthController>(
-      AuthController(api: Get.find<SavviApi>(),),
-      permanent: true,
-    );
-
-    Get.put<AccessController>(
-      AccessController(
+      AuthController(
         api: Get.find<SavviApi>(),
+        tokenStorage: Get.find<TokenStorage>(),
+        userStorage: Get.find<UserStorage>(),
       ),
       permanent: true,
     );

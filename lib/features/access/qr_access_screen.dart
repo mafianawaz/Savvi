@@ -1,371 +1,225 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
+import 'package:get/get.dart';
+import 'package:mobile_scanner/mobile_scanner.dart';
 
 import '../../core/routing/app_router.dart';
 import '../../core/theme/tokens.dart';
-import '../../l10n/app_localizations.dart';
 import '../../data/models/onboarding.dart';
+import '../../l10n/app_localizations.dart';
 import '../../shared/patterns/feedback.dart';
 import '../../shared/widgets/auth_scaffold.dart';
 import '../../shared/widgets/sav_button.dart';
 import '../../shared/widgets/sav_inputs.dart';
 import 'access_controller.dart';
-/// RiverPod
-/// QR access. The scan/verify FLOW and its result states are fully built here
-/// and run against the backend verifyQr contract. The actual camera capture is
-/// wired during device setup (like Firebase and fonts) — until then the member
-/// can enter the code beneath the QR code manually, which exercises the exact
-/// same verification path. Nothing about validity is decided on-device.
-// class QrAccessScreen extends ConsumerStatefulWidget {
-//   const QrAccessScreen({super.key});
-//
-//   @override
-//   ConsumerState<QrAccessScreen> createState() => _QrAccessScreenState();
-// }
-//
-// class _QrAccessScreenState extends ConsumerState<QrAccessScreen> {
-//   final _code = TextEditingController();
-//
-//   @override
-//   void dispose() {
-//     _code.dispose();
-//     super.dispose();
-//   }
-//
-//   Future<void> _verify(String token) async {
-//     final l = AppLocalizations.of(context);
-//     if (token.trim().isEmpty) {
-//       SavFeedback.toast(context, l.accessErrEmpty, tone: FeedbackTone.warning);
-//       return;
-//     }
-//     final grant = await ref.read(accessControllerProvider.notifier).verifyQr(token);
-//     if (!mounted) return;
-//     if (grant.verified) {
-//       context.push(Routes.signUp);
-//     } else {
-//       SavFeedback.toast(context, _stateErr(l, grant.state), tone: FeedbackTone.error);
-//     }
-//   }
-//
-//   String _stateErr(AppLocalizations l, AccessState s) => switch (s) {
-//         AccessState.expired => l.accessErrExpired,
-//         AccessState.used => l.accessErrUsed,
-//         _ => l.accessErrInvalid,
-//       };
-//
-//   @override
-//   Widget build(BuildContext context) {
-//     final l = AppLocalizations.of(context);
-//     final verifying = ref.watch(accessControllerProvider).isLoading;
-//
-//     return AuthScaffold(
-//       title: l.qrTitle,
-//       subtitle: l.qrSubtitle,
-//       children: [
-//         // Camera viewfinder placeholder (scanner attached at device setup).
-//         AspectRatio(
-//           aspectRatio: 1,
-//           child: Container(
-//             decoration: BoxDecoration(
-//               color: SavColors.navy,
-//               borderRadius: SavRadius.card,
-//             ),
-//             child: Stack(
-//               alignment: Alignment.center,
-//               children: [
-//                 const Icon(Icons.qr_code_scanner,
-//                     size: 64, color: Colors.white24),
-//                 Positioned(
-//                   bottom: SavSpace.x12,
-//                   left: SavSpace.x12,
-//                   right: SavSpace.x12,
-//                   child: Text(l.qrCameraStaged,
-//                       textAlign: TextAlign.center,
-//                       style: const TextStyle(
-//                           fontFamily: SavFonts.sans,
-//                           fontSize: 11.5,
-//                           height: 1.4,
-//                           fontWeight: FontWeight.w500,
-//                           color: Colors.white70)),
-//                 ),
-//               ],
-//             ),
-//           ),
-//         ),
-//         const SizedBox(height: SavSpace.x16),
-//         SavButton(
-//           label: l.qrScanBtn,
-//           variant: SavButtonVariant.ghost,
-//           icon: Icons.photo_camera_outlined,
-//           // Camera opens once the scanner package is wired at device setup.
-//           onPressed: null,
-//         ),
-//         const SizedBox(height: SavSpace.x20),
-//         SavField(
-//           label: l.qrEnterLabel,
-//           controller: _code,
-//           hint: 'SVVI-2026-XXXX',
-//         ),
-//         const SizedBox(height: SavSpace.x14),
-//         SavButton(
-//           label: l.accessVerifyBtn,
-//           busy: verifying,
-//           onPressed: () => _verify(_code.text),
-//         ),
-//       ],
-//     );
-//   }
-// }
 
+class QrAccessScreen extends StatefulWidget {
+  const QrAccessScreen({super.key});
 
-/// GetX
+  @override
+  State<QrAccessScreen> createState() => _QrAccessScreenState();
+}
 
-import 'package:flutter/material.dart';
-import 'package:get/get.dart';
+class _QrAccessScreenState extends State<QrAccessScreen> {
+  late final AccessController controller;
+  late final MobileScannerController scannerController;
+  bool _handledScan = false;
 
-/// QR access.
-///
-/// The scan/verify FLOW and its result states are fully built here and run
-/// against the backend verifyQr contract.
-///
-/// The actual camera capture is wired during device setup (like Firebase and
-/// fonts). Until then the member can enter the QR code manually, which
-/// exercises the exact same verification path.
-// class QrAccessScreen extends StatefulWidget {
-//   const QrAccessScreen({super.key});
-//
-//   @override
-//   State<QrAccessScreen> createState() => _QrAccessScreenState();
-// }
-//
-// class _QrAccessScreenState extends State<QrAccessScreen> {
-//   final _code = TextEditingController();
-//
-//   late final AccessController accessController;
-//
-//   @override
-//   void initState() {
-//     super.initState();
-//     accessController = Get.find<AccessController>();
-//   }
-//
-//   @override
-//   void dispose() {
-//     _code.dispose();
-//     super.dispose();
-//   }
-//
-//   Future<void> _verify(String token) async {
-//     final l = AppLocalizations.of(context);
-//
-//     if (token.trim().isEmpty) {
-//       SavFeedback.toast(
-//         context,
-//         l.accessErrEmpty,
-//         tone: FeedbackTone.warning,
-//       );
-//       return;
-//     }
-//
-//     final grant = await accessController.verifyQr(token);
-//
-//     if (!mounted) return;
-//
-//     if (grant.verified) {
-//       Get.offNamed(Routes.signUp);
-//     } else {
-//       SavFeedback.toast(
-//         context,
-//         _stateErr(l, grant.state),
-//         tone: FeedbackTone.error,
-//       );
-//     }
-//   }
-//
-//   String _stateErr(
-//       AppLocalizations l,
-//       AccessState state,
-//       ) {
-//     switch (state) {
-//       case AccessState.expired:
-//         return l.accessErrExpired;
-//
-//       case AccessState.used:
-//         return l.accessErrUsed;
-//
-//       default:
-//         return l.accessErrInvalid;
-//     }
-//   }
-//
-//   @override
-//   Widget build(BuildContext context) {
-//     final l = AppLocalizations.of(context);
-//
-//     return Obx(() {
-//       final verifying = accessController.isLoading.value;
-//
-//       return AuthScaffold(
-//         title: l.qrTitle,
-//         subtitle: l.qrSubtitle,
-//         children: [
-//           /// Camera placeholder
-//           AspectRatio(
-//             aspectRatio: 1,
-//             child: Container(
-//               decoration: BoxDecoration(
-//                 color: SavColors.navy,
-//                 borderRadius: SavRadius.card,
-//               ),
-//               child: Stack(
-//                 alignment: Alignment.center,
-//                 children: [
-//                   const Icon(
-//                     Icons.qr_code_scanner,
-//                     size: 64,
-//                     color: Colors.white24,
-//                   ),
-//                   Positioned(
-//                     left: SavSpace.x12,
-//                     right: SavSpace.x12,
-//                     bottom: SavSpace.x12,
-//                     child: Text(
-//                       l.qrCameraStaged,
-//                       textAlign: TextAlign.center,
-//                       style: const TextStyle(
-//                         fontFamily: SavFonts.sans,
-//                         fontSize: 11.5,
-//                         height: 1.4,
-//                         fontWeight: FontWeight.w500,
-//                         color: Colors.white70,
-//                       ),
-//                     ),
-//                   ),
-//                 ],
-//               ),
-//             ),
-//           ),
-//
-//           const SizedBox(height: SavSpace.x16),
-//
-//           SavButton(
-//             label: l.qrScanBtn,
-//             variant: SavButtonVariant.ghost,
-//             icon: Icons.photo_camera_outlined,
-//
-//             // Camera implementation will be added later.
-//             onPressed: null,
-//           ),
-//
-//           const SizedBox(height: SavSpace.x20),
-//
-//           SavField(
-//             label: l.qrEnterLabel,
-//             controller: _code,
-//             hint: 'SVVI-2026-XXXX',
-//           ),
-//
-//           const SizedBox(height: SavSpace.x14),
-//
-//           SavButton(
-//             label: l.accessVerifyBtn,
-//             busy: verifying,
-//             onPressed: () => _verify(
-//               _code.text,
-//             ),
-//           ),
-//         ],
-//       );
-//     });
-//   }
-// }
+  @override
+  void initState() {
+    super.initState();
+    controller = Get.find<AccessController>();
+    scannerController = MobileScannerController(
+      detectionSpeed: DetectionSpeed.noDuplicates,
+      detectionTimeoutMs: 800,
+    );
+  }
 
-import 'package:flutter/material.dart';
-import 'package:get/get.dart';
+  @override
+  void dispose() {
+    scannerController.dispose();
+    super.dispose();
+  }
 
-import 'package:flutter/material.dart';
-import 'package:get/get.dart';
+  Future<void> _onDetect(BarcodeCapture capture) async {
+    if (_handledScan || controller.isLoading.value) return;
 
-class QrAccessScreen extends StatelessWidget {
-  QrAccessScreen({super.key});
+    String? value;
+    for (final barcode in capture.barcodes) {
+      final raw = barcode.rawValue?.trim();
+      if (raw != null && raw.isNotEmpty) {
+        value = raw;
+        break;
+      }
+    }
+    if (value == null) return;
 
-  final AccessController controller = Get.find<AccessController>();
+    _handledScan = true;
+    await scannerController.stop();
+
+    final grant = await controller.verifyQr(context, value);
+    if (!mounted) return;
+
+    if (grant?.verified == true) {
+      Get.offNamed(Routes.signUp);
+    } else {
+      _handledScan = false;
+      await scannerController.start();
+    }
+  }
+
+  Future<void> _manualVerify() async {
+    final grant = await controller.verifyQr(
+      context,
+      controller.qrCodeController.text,
+    );
+    if (!mounted) return;
+    if (grant?.verified == true) Get.offNamed(Routes.signUp);
+  }
 
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context);
 
-    return Obx(
-          () => AuthScaffold(
+    return Obx(() {
+      final verifying = controller.isLoading.value;
+
+      return AuthScaffold(
         title: l.qrTitle,
         subtitle: l.qrSubtitle,
         children: [
-          /// Camera Placeholder
-          AspectRatio(
-            aspectRatio: 1,
-            child: Container(
-              decoration: const BoxDecoration(
-                color: SavColors.navy,
-                borderRadius: SavRadius.card,
-              ),
-              child: Stack(
-                alignment: Alignment.center,
-                children: [
-                  const Icon(
-                    Icons.qr_code_scanner,
-                    size: 64,
-                    color: Colors.white24,
-                  ),
-                  Positioned(
-                    left: SavSpace.x12,
-                    right: SavSpace.x12,
-                    bottom: SavSpace.x12,
-                    child: Text(
-                      l.qrCameraStaged,
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(
-                        fontFamily: SavFonts.sans,
-                        fontSize: 11.5,
-                        height: 1.4,
-                        fontWeight: FontWeight.w500,
-                        color: Colors.white70,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
+          _ScannerCard(
+            controller: scannerController,
+            onDetect: _onDetect,
           ),
-
           const SizedBox(height: SavSpace.x16),
-
           SavButton(
             label: l.qrScanBtn,
-            variant: SavButtonVariant.ghost,
-            icon: Icons.photo_camera_outlined,
-
-            /// Camera implementation later
-            onPressed: null,
+            onPressed: verifying
+                ? null
+                : () async {
+                    _handledScan = false;
+                    await scannerController.start();
+                  },
           ),
-
-          const SizedBox(height: SavSpace.x20),
-
-          SavField(
-            label: l.qrEnterLabel,
-            controller: controller.qrCodeController,
-            hint: 'SVVI-2026-XXXX',
-          ),
-
-          const SizedBox(height: SavSpace.x14),
-
+          const SizedBox(height: SavSpace.x10),
           SavButton(
-            label: l.accessVerifyBtn,
-            busy: controller.isLoading.value,
-            onPressed: () => controller.verifyQr(context),
+            label: l.cancelAction,
+            variant: SavButtonVariant.ghost,
+            onPressed: verifying
+                ? null
+                : () async {
+              _handledScan = false;
+              await scannerController.start();
+            },
+          ),
+        ],
+      );
+    });
+  }
+}
+
+class _ScannerCard extends StatelessWidget {
+  const _ScannerCard({required this.controller, required this.onDetect});
+
+  final MobileScannerController controller;
+  final void Function(BarcodeCapture) onDetect;
+
+  @override
+  Widget build(BuildContext context) {
+    return AspectRatio(
+      aspectRatio: 1,
+      child: ClipRRect(
+        borderRadius: SavRadius.card,
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            MobileScanner(
+              controller: controller,
+              onDetect: onDetect,
+            ),
+            const _ScannerOverlay(),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ScannerOverlay extends StatelessWidget {
+  const _ScannerOverlay();
+
+  @override
+  Widget build(BuildContext context) {
+    return IgnorePointer(
+      child: Stack(
+        children: [
+          Container(color: Colors.black.withValues(alpha: .18)),
+          Center(
+            child: SizedBox(
+              width: 238,
+              height: 238,
+              child: CustomPaint(painter: _ScannerFramePainter()),
+            ),
+          ),
+          Positioned(
+            left: 20,
+            right: 20,
+            bottom: 18,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+              decoration: BoxDecoration(
+                color: Colors.black.withValues(alpha: .62),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Text(
+                'Position the QR code inside the frame',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontFamily: SavFonts.sans,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.white,
+                ),
+              ),
+            ),
           ),
         ],
       ),
     );
   }
+}
+
+class _ScannerFramePainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = Colors.white
+      ..strokeWidth = 4
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.round;
+
+    const length = 34.0;
+    const r = 2.0;
+    final x = size.width;
+    final y = size.height;
+
+    final path = Path()
+      ..moveTo(r, length)
+      ..lineTo(r, r)
+      ..lineTo(length, r)
+      ..moveTo(x - length, r)
+      ..lineTo(x - r, r)
+      ..lineTo(x - r, length)
+      ..moveTo(r, y - length)
+      ..lineTo(r, y - r)
+      ..lineTo(length, y - r)
+      ..moveTo(x - length, y - r)
+      ..lineTo(x - r, y - r)
+      ..lineTo(x - r, y - length);
+
+    canvas.drawPath(path, paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

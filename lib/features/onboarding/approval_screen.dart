@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
+import 'package:get/get.dart';
 
 import '../../core/routing/app_router.dart';
 import '../../core/theme/tokens.dart';
@@ -10,7 +10,7 @@ import '../../shared/widgets/step_tracker.dart';
 
 /// Post-submission approval screen. Renders one of four backend-determined
 /// states: pending (the rich tracker hero), approved, declined, or needs
-/// additional review. The state is passed in via go_router `extra`; if absent
+/// additional review. The state is passed in via GetX route arguments; if absent
 /// it defaults to pending. The client never decides the outcome.
 ///
 /// [isStatusRoute] is true when this is reached via the "Track Approval Status"
@@ -122,14 +122,14 @@ class _PendingView extends StatelessWidget {
                     if (showTrackButton) ...[
                       SavButton(
                         label: l.trackApprovalBtn,
-                        onPressed: () => context.push(Routes.approvalStatus),
+                        onPressed: () => Get.toNamed(Routes.approvalStatus),
                       ),
                       const SizedBox(height: SavSpace.x10),
                     ],
                     SavButton(
                       label: l.backToSignIn,
                       variant: SavButtonVariant.ghost,
-                      onPressed: () => context.go(Routes.signIn),
+                      onPressed: () => Get.offAllNamed(Routes.signIn),
                     ),
                   ],
                 ),
@@ -180,11 +180,13 @@ class _PendingView extends StatelessWidget {
           ),
           const SizedBox(height: SavSpace.x12),
           _row(SavColors.greenLight, SavColors.greenDark, Icons.check,
-              l.approvalRow1Title, l.approvalRow1Body, done: true),
+              l.approvalRow1Title, l.approvalRow1Body,
+              done: true),
           _row(SavColors.amberLight, SavColors.amber, Icons.schedule,
               l.approvalRow2Title, l.approvalRow2Body),
           _row(SavColors.blueLight, SavColors.blue, Icons.notifications_none,
-              l.approvalRow3Title, l.approvalRow3Body, muted: true),
+              l.approvalRow3Title, l.approvalRow3Body,
+              muted: true),
         ],
       ),
     );
@@ -200,8 +202,7 @@ class _PendingView extends StatelessWidget {
           Container(
             width: 36,
             height: 36,
-            decoration:
-                BoxDecoration(color: bg, borderRadius: SavRadius.field),
+            decoration: BoxDecoration(color: bg, borderRadius: SavRadius.field),
             child: Icon(icon, size: 16, color: fg),
           ),
           const SizedBox(width: SavSpace.x12),
@@ -336,14 +337,14 @@ class _ResultView extends StatelessWidget {
                 const SizedBox(height: SavSpace.x24),
                 if (tone == _ResultTone.approved)
                   SavButton(
-                    label: l.approvedCta,
-                    onPressed: () => context.go(Routes.home),
+                    label: l.trackApprovalBtn,
+                    onPressed: () => Get.toNamed(Routes.approvalStatus),
                   )
                 else
                   SavButton(
                     label: l.backToSignIn,
                     variant: SavButtonVariant.ghost,
-                    onPressed: () => context.go(Routes.signIn),
+                    onPressed: () => Get.offAllNamed(Routes.signIn),
                   ),
               ],
             ),

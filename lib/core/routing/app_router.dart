@@ -6,6 +6,7 @@ import '../../features/app/stage_placeholder.dart';
 import '../../features/auth/auth_controller.dart';
 import '../../features/auth/sign_in_screen.dart';
 import '../../features/access/access_link_screen.dart';
+import '../../features/access/access_controller.dart';
 import '../../features/access/qr_access_screen.dart';
 import '../../features/forgot_password/check_email_screen.dart';
 import '../../features/forgot_password/forgot_password_screen.dart';
@@ -13,6 +14,8 @@ import '../../features/forgot_password/new_password_screen.dart';
 import '../../features/forgot_password/password_update_screen.dart';
 import '../../features/onboarding/create_profile_screen.dart';
 import '../../features/onboarding/approval_screen.dart';
+import '../../features/onboarding/profile_controller.dart';
+import '../network/savvi_api.dart';
 import '../../features/home/main_shell.dart';
 import '../../features/request/request_controller.dart';
 import '../../features/request/request_wizard_screen.dart';
@@ -28,8 +31,6 @@ import '../../features/profile/profile_screen.dart';
 import '../../features/settings/settings_screen.dart';
 import '../../features/settings/security_screen.dart';
 import '../../data/models/onboarding.dart';
-import '../network/savvi_api.dart';
-
 class Routes {
   Routes._();
 
@@ -74,18 +75,31 @@ class AppPages {
 
     GetPage(
       name: Routes.accessLink,
-      page: () =>  AccessLinkScreen(),
+      binding: BindingsBuilder(() {
+        Get.put<AccessController>(
+          AccessController(api: Get.find<SavviApi>()),
+          permanent: false,
+        );
+      }),
+      page: () => AccessLinkScreen(),
     ),
 
     GetPage(
       name: Routes.qrAccess,
-      page: () =>  QrAccessScreen(),
+      // QR is pushed from the access screen, so the access controller remains
+      // alive while this route is on top of it.
+      page: () => const QrAccessScreen(),
     ),
 
     GetPage(
       name: Routes.signUp,
-      page: () => QrAccessScreen(),
-      // const CreateProfileScreen(),
+      binding: BindingsBuilder(() {
+        Get.put<ProfileController>(
+          ProfileController(api: Get.find<SavviApi>()),
+          permanent: false,
+        );
+      }),
+      page: () => const CreateProfileScreen(),
     ),
 
     GetPage(

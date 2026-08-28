@@ -1,13 +1,7 @@
-/// Onboarding domain types for Stage 2 (access verification + approval).
-///
-/// All of these are BACKEND-DETERMINED. The client sends a token/code or a
-/// signed-in user and displays whatever state the backend returns; it never
-/// decides validity, expiry, or approval outcome itself.
-
-/// Result of verifying a nonprofit access link, code, or QR token.
+/// Onboarding domain types. Values are backend-owned.
 enum AccessState {
   ok('ok'),
-  onsite('onsite'), // trusted onsite enrollment → instant approval path
+  onsite('onsite'),
   expired('expired'),
   used('used'),
   invalid('invalid');
@@ -15,9 +9,9 @@ enum AccessState {
   const AccessState(this.api);
   final String api;
 
-  static AccessState fromApi(String? v) {
-    for (final s in values) {
-      if (s.api == v) return s;
+  static AccessState fromApi(String? value) {
+    for (final state in values) {
+      if (state.api == value) return state;
     }
     return AccessState.invalid;
   }
@@ -25,38 +19,98 @@ enum AccessState {
   bool get isVerified => this == ok || this == onsite;
 }
 
-/// A verified access context carried forward into profile creation.
 class AccessGrant {
-  const AccessGrant({required this.state, this.nonprofitName});
+  const AccessGrant({
+    required this.state,
+    this.nonprofitName,
+    this.code,
+    this.inviteType,
+    this.locationId,
+    this.source,
+    this.coordinates,
+    this.expiresAt,
+    this.qrExpiresAt,
+    this.message,
+  });
+
   final AccessState state;
   final String? nonprofitName;
+  final String? code;
+  final String? inviteType;
+  final String? locationId;
+  final String? source;
+  final List<double>? coordinates;
+  final DateTime? expiresAt;
+  final DateTime? qrExpiresAt;
+  final String? message;
 
   bool get onsite => state == AccessState.onsite;
   bool get verified => state.isVerified;
 
-  factory AccessGrant.fromJson(Map<String, dynamic> j) => AccessGrant(
-        state: AccessState.fromApi(j['state'] as String?),
-        nonprofitName: j['nonprofit'] as String?,
-      );
+  factory AccessGrant.fromJson(Map<String, dynamic> json) {
+    final valid = json['valid'] == true;
+
+    final stateValue = json['state']?.toString();
+
+    return AccessGrant(
+      state: valid
+          ? AccessState.fromApi(stateValue ?? 'ok')
+          : AccessState.fromApi(stateValue),
+
+      nonprofitName:
+      (json['locationName'] ?? json['nonprofit'])?.toString(),
+
+      code: json['code']?.toString(),
+
+      inviteType: json['inviteType']?.toString(),
+
+      locationId: json['locationId']?.toString(),
+
+      source: json['source']?.toString(),
+
+      coordinates: _coordinates(json['coordinates']),
+
+      expiresAt: _date(json['expiresAt']),
+
+      qrExpiresAt: _date(json['qrExpiresAt']),
+
+      message: json['message']?.toString(),
+    );
+  }
+
+  static List<double>? _coordinates(dynamic value) {
+    if (value is! List || value.length < 2) return null;
+
+    final parsed = <double>[];
+    for (final item in value) {
+      final number = item is num ? item.toDouble() : double.tryParse(item.toString());
+      if (number == null) return null;
+      parsed.add(number);
+    }
+    return parsed;
+  }
+
+  static DateTime? _date(dynamic value) {
+    if (value == null) return null;
+    return DateTime.tryParse(value.toString());
+  }
 }
 
-/// Approval outcome for a submitted member profile.
 enum ApprovalState {
   pending('pending'),
   approved('approved'),
   declined('declined'),
-  needsReview('needs_review'); // "Needs Additional Review"
+  needsReview('needs_review');
 
   const ApprovalState(this.api);
   final String api;
 
-  static ApprovalState fromApi(String? v) {
-    for (final s in values) {
-      if (s.api == v) return s;
+  static ApprovalState fromApi(String? value) {
+    for (final state in values) {
+      if (state.api == value) return state;
     }
     return ApprovalState.pending;
   }
 }
 
-/// The three high-level onboarding progress steps shown in the tracker.
 enum OnboardingStep { submitted, review, approved }

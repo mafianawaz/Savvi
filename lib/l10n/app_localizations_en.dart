@@ -644,14 +644,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get s2Sub => 'Choose how you\'d like to receive your support.';
 
   @override
-  String get s3Title => 'Household & contact';
+  String get s3Title => 'Household & Contact';
 
   @override
   String get s3Sub =>
       'These come from your profile. Update them there if anything has changed.';
 
   @override
-  String get s4Title => 'Dietary & allergens';
+  String get s4Title => 'Diet & Allergens';
 
   @override
   String get s4Sub => 'Sent to the nonprofit for packing only.';
@@ -1159,7 +1159,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsSub => 'Manage your account and get help.';
 
   @override
-  String get sPersonal => 'Personal information';
+  String get sPersonal => 'Profile';
 
   @override
   String get sPersonalDesc => 'Name, contact, address, household';
@@ -1174,7 +1174,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sNotifDesc => 'Channels and preferences';
 
   @override
-  String get sSecurity => 'Security & password';
+  String get sSecurity => 'Security & Password';
 
   @override
   String get sSecurityDesc => 'Update your password';
@@ -1306,4 +1306,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get confirmPasswordMismatch => 'Passwords don\'t match.';
+
+  @override
+  String get edit => 'Edit';
 }

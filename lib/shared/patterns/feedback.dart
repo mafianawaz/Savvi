@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import '../../core/theme/tokens.dart';
 import '../widgets/sav_button.dart';
 
@@ -50,6 +51,48 @@ class SavFeedback {
               Expanded(
                 child: Text(
                   message,
+                  style: TextStyle(
+                    fontFamily: SavFonts.sans,
+                    fontSize: 13.5,
+                    fontWeight: FontWeight.w600,
+                    color: fg,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+  }
+
+
+  /// Shows API feedback without requiring a BuildContext in every controller.
+  /// Uses the same Savvi toast styling as [toast].
+  static void globalToast(
+    String message, {
+    FeedbackTone tone = FeedbackTone.info,
+  }) {
+    final context = Get.context;
+    if (context == null || message.trim().isEmpty) return;
+
+    final messenger = ScaffoldMessenger.maybeOf(context);
+    if (messenger == null) return;
+
+    final (bg, fg, icon) = _style(tone);
+    messenger
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          backgroundColor: bg,
+          behavior: SnackBarBehavior.floating,
+          shape: const RoundedRectangleBorder(borderRadius: SavRadius.field),
+          content: Row(
+            children: [
+              Icon(icon, size: 18, color: fg),
+              const SizedBox(width: SavSpace.x10),
+              Expanded(
+                child: Text(
+                  message.trim(),
                   style: TextStyle(
                     fontFamily: SavFonts.sans,
                     fontSize: 13.5,

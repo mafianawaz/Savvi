@@ -358,7 +358,7 @@ class RequestWizardScreen extends StatelessWidget {
 
               const SizedBox(height: 16),
 
-              SavButton(label: "${l.editInProfile} →", onPressed: _goEditProfile, variant: SavButtonVariant.ghost,),
+              SavButton(label: l.edit, onPressed: _goEditProfile, variant: SavButtonVariant.ghost,),
 
               const SizedBox(height: 24),
 

@@ -1283,7 +1283,7 @@ abstract class AppLocalizations {
   /// No description provided for @s3Title.
   ///
   /// In en, this message translates to:
-  /// **'Household & contact'**
+  /// **'Household & Contact'**
   String get s3Title;
 
   /// No description provided for @s3Sub.
@@ -1295,7 +1295,7 @@ abstract class AppLocalizations {
   /// No description provided for @s4Title.
   ///
   /// In en, this message translates to:
-  /// **'Dietary & allergens'**
+  /// **'Diet & Allergens'**
   String get s4Title;
 
   /// No description provided for @s4Sub.
@@ -2267,7 +2267,7 @@ abstract class AppLocalizations {
   /// No description provided for @sPersonal.
   ///
   /// In en, this message translates to:
-  /// **'Personal information'**
+  /// **'Profile'**
   String get sPersonal;
 
   /// No description provided for @sPersonalDesc.
@@ -2297,7 +2297,7 @@ abstract class AppLocalizations {
   /// No description provided for @sSecurity.
   ///
   /// In en, this message translates to:
-  /// **'Security & password'**
+  /// **'Security & Password'**
   String get sSecurity;
 
   /// No description provided for @sSecurityDesc.
@@ -2533,6 +2533,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Passwords don\'t match.'**
   String get confirmPasswordMismatch;
+
+  /// No description provided for @edit.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit'**
+  String get edit;
 }
 
 class _AppLocalizationsDelegate

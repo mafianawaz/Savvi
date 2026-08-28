@@ -2,12 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'core/auth/token_storage.dart';
+import 'core/auth/user_storage.dart';
 import 'core/localization/locale_controller.dart';
 import 'core/network/savvi_api.dart';
 import 'core/state/providers.dart';
 import 'core/state/shell_nav.dart';
 import 'core/formatting/formatters.dart';
-import 'features/access/access_controller.dart';
 import 'features/app/savvi_app.dart';
 import 'features/auth/auth_controller.dart';
 import 'features/home/requests_controller.dart';
@@ -42,6 +43,14 @@ Future<void> main() async {
 
   // Raw dependencies
   Get.put<SharedPreferences>(prefs, permanent: true);
+  Get.put<TokenStorage>(
+    TokenStorage(prefs),
+    permanent: true,
+  );
+  Get.put<UserStorage>(
+    UserStorage(prefs),
+    permanent: true,
+  );
 
   // Locale (needed by AppBindings for the API client's locale header)
   Get.put(LocaleController(), permanent: true);
@@ -61,14 +70,14 @@ Future<void> main() async {
 
   // Session controllers
   Get.put<AuthController>(
-    AuthController(api: Get.find<SavviApi>()),
+    AuthController(
+      api: Get.find<SavviApi>(),
+      tokenStorage: Get.find<TokenStorage>(),
+      userStorage: Get.find<UserStorage>(),
+    ),
     permanent: true,
   );
 
-  Get.put<AccessController>(
-    AccessController(api: Get.find<SavviApi>()),
-    permanent: true,
-  );
 
   Get.put<EditProfileController>(
     EditProfileController(

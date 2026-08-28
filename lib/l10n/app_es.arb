@@ -434,7 +434,7 @@
   "householdConfirm": "Confirma el tamaño de tu hogar.",
   "settingsTitle": "Ajustes",
   "settingsSub": "Administra tu cuenta y obtén ayuda.",
-  "sPersonal": "Información personal",
+  "sPersonal": "Perfil",
   "sPersonalDesc": "Nombre, contacto, dirección, hogar",
   "sLang": "Idioma",
   "sNotif": "Notificaciones",
@@ -461,13 +461,21 @@
   "checkYourInboxTitle": "Revisa tu correo.",
   "resetLinkSentBody": "Enviamos un enlace de restablecimiento a {email}. El enlace vence en 15 minutos.",
   "@resetLinkSentBody": {
-    "placeholders": { "email": { "type": "String" } }
+    "placeholders": {
+      "email": {
+        "type": "String"
+      }
+    }
   },
   "iHaveTheLink": "Tengo el enlace →",
   "resendLinkBtn": "Reenviar enlace",
   "resendInSeconds": "Reenviar en {seconds}s",
   "@resendInSeconds": {
-    "placeholders": { "seconds": { "type": "int" } }
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
   },
   "newPasswordTitle": "Nueva contraseña",
   "newPasswordSubtitle": "Al menos 8 caracteres con mayúscula, número y carácter especial.",
@@ -484,5 +492,6 @@
   "checkInboxTitle": "Revisa tu bandeja de entrada.",
   "checkInboxBody": "Enviamos un enlace de restablecimiento a {email}. El enlace vence en 15 minutos.",
   "resendLink": "Reenviar enlace",
-  "confirmPasswordMismatch": "Las contraseñas no coinciden."
+  "confirmPasswordMismatch": "Las contraseñas no coinciden.",
+  "edit": "Editar"
 }

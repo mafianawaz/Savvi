@@ -693,12 +693,24 @@ class AccessLinkScreen extends StatelessWidget {
 
           const SizedBox(height: SavSpace.x14),
 
+          // SavButton(
+          //   label: l.accessVerifyBtn,
+          //   busy: controller.isLoading.value,
+          //   onPressed: () => controller.verifyAccess(context),
+          // ),
           SavButton(
             label: l.accessVerifyBtn,
             busy: controller.isLoading.value,
-            onPressed: () => controller.verifyAccess(context),
-          ),
+            onPressed: () async {
+              final grant = await controller.verifyAccess(context);
 
+              if (!context.mounted) return;
+
+              if (grant?.verified == true) {
+                Get.offNamed(Routes.signUp);
+              }
+            },
+          ),
           const SizedBox(height: SavSpace.x16),
 
           _OrDivider(
@@ -772,23 +784,23 @@ class AccessLinkScreen extends StatelessWidget {
 
           const SizedBox(height: SavSpace.x16),
 
-          if (verified)
-            _VerifiedNotice(
-              grant: grant!,
-            ),
+          // if (verified)
+          //   _VerifiedNotice(
+          //     grant: grant!,
+          //   ),
+          //
+          // if (verified)
+          //   const SizedBox(height: SavSpace.x16),
 
-          if (verified)
-            const SizedBox(height: SavSpace.x16),
-
-          SavButton(
-            label: l.accessContinueBtn,
-            variant: verified
-                ? SavButtonVariant.primary
-                : SavButtonVariant.ghost,
-            onPressed: verified
-                ? controller.continueSignup
-                : null,
-          ),
+          // SavButton(
+          //   label: l.accessContinueBtn,
+          //   variant: verified
+          //       ? SavButtonVariant.primary
+          //       : SavButtonVariant.ghost,
+          //   onPressed: verified
+          //       ? controller.continueSignup
+          //       : null,
+          // ),
 
           if (!verified) ...[
             const SizedBox(height: SavSpace.x8),

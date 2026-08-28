@@ -5,6 +5,7 @@ import '../../core/localization/locale_controller.dart';
 import '../../core/routing/app_router.dart';
 import '../../core/state/shell_nav.dart';
 import '../../core/theme/app_theme.dart';
+import '../auth/auth_controller.dart';
 import '../../l10n/app_localizations.dart';
 
 /// Root of the Savvi app. Wires theme, localization (en-US / es-US), and the
@@ -22,7 +23,9 @@ class SavviApp extends StatelessWidget {
           debugShowCheckedModeBanner: false,
           theme: AppTheme.light(),
           getPages: AppPages.routes,
-          initialRoute: Routes.signIn,
+          initialRoute: Get.find<AuthController>().isSignedIn
+              ? Routes.home
+              : Routes.signIn,
           navigatorObservers: [shellRouteObserver],
           builder: (context, child) {
             final mq = MediaQuery.of(context);
