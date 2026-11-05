@@ -71,7 +71,10 @@ class AlertsController extends GetxController {
   /// returned values. Returns null on success, or an l10n error key on
   /// failure.
   Future<String?> rsvp(String id, int count) async {
-    final result = await api.rsvpAlert(id, count);
+    final current = alerts.firstWhereOrNull((a) => a.id == id);
+    final result = current != null && current.rsvp > 0
+        ? await api.updateRsvp(id, count)
+        : await api.rsvpAlert(id, count);
 
     return result.when(
       ok: (data) {

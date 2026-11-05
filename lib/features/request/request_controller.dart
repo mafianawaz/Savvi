@@ -7,7 +7,7 @@ import '../../data/models/profile_prefs.dart';
 import '../auth/auth_controller.dart';
 import '../home/requests_controller.dart';
 
-const int kWizardSteps = 5;
+const int kWizardSteps = 4;
 
 /// Delivery availability for a request. In production the **backend**
 /// determines this from member ZIP, nonprofit service area, nonprofit
@@ -93,6 +93,11 @@ class RequestController extends GetxController {
   /// Current draft.
   final Rx<RequestDraft> draft = RequestDraft().obs;
 
+  /// Categories returned by the backend. The API owns the available taxonomy.
+  final RxList<FoodCategory> availableCategories = <FoodCategory>[].obs;
+  final RxBool isLoadingCategories = false.obs;
+  final Rxn<String> categoriesError = Rxn<String>();
+
   /// Backend delivery availability.
   final Rx<DeliveryAvailability> deliveryAvailability =
       DeliveryAvailability.available.obs;
@@ -143,6 +148,7 @@ class RequestController extends GetxController {
   void onInit() {
     super.onInit();
     _seedProfile();
+    loadCategories();
     notesController.text = draft.value.notes;
     notesController.addListener(() {
       if (notesController.text != draft.value.notes) {
@@ -157,22 +163,74 @@ class RequestController extends GetxController {
     super.onClose();
   }
 
+  Future<void> loadCategories() async {
+    isLoadingCategories.value = true;
+    categoriesError.value = null;
+
+    final result = await api.listRequestCategories();
+    result.when(
+      ok: (values) {
+        final mapped = <FoodCategory>[];
+        for (final value in values) {
+          final category = FoodCategory.tryFromRequestApi(value);
+          if (category != null && !mapped.contains(category)) {
+            mapped.add(category);
+          }
+        }
+        availableCategories.assignAll(mapped);
+      },
+      err: (failure) {
+        categoriesError.value = failure.messageKey;
+      },
+    );
+
+    isLoadingCategories.value = false;
+  }
+
+  DietaryPref? _dietFromProfileValue(String value) {
+    for (final item in DietaryPref.values) {
+      if (item.api == value || item.profileApi == value) return item;
+    }
+    return null;
+  }
+
+  Allergen? _allergenFromProfileValue(String value) {
+    for (final item in Allergen.values) {
+      if (item.api == value || item.profileApi == value) return item;
+    }
+    return null;
+  }
+
+  Set<DietaryPref> get profileDiet {
+    final profile = authController.profile;
+    return {
+      for (final item in (profile?['diet'] as List? ?? const []))
+        if (_dietFromProfileValue(item.toString()) case final value?) value,
+    };
+  }
+
+  Set<Allergen> get profileAllergens {
+    final profile = authController.profile;
+    return {
+      for (final item in (profile?['allergens'] as List? ?? const []))
+        if (_allergenFromProfileValue(item.toString()) case final value?) value,
+    };
+  }
+
   void _seedProfile() {
     final profile = authController.profile;
 
     if (profile == null) return;
 
     for (final item in (profile['diet'] as List? ?? const [])) {
-      final value = DietaryPref.tryFromApi(item as String);
-
+      final value = _dietFromProfileValue(item.toString());
       if (value != null) {
         draft.value.diet.add(value);
       }
     }
 
     for (final item in (profile['allergens'] as List? ?? const [])) {
-      final value = Allergen.tryFromApi(item as String);
-
+      final value = _allergenFromProfileValue(item.toString());
       if (value != null) {
         draft.value.allergens.add(value);
       }
@@ -234,9 +292,55 @@ class RequestController extends GetxController {
     });
   }
 
+  bool validateCurrentStep() {
+    final current = draft.value.step;
+    if (current == 1 && draft.value.categories.isEmpty) {
+      return false;
+    }
+    if (current == 2 && draft.value.method == null) {
+      return false;
+    }
+    return true;
+  }
+
   void next() {
+    if (!validateCurrentStep()) return;
     _update((d) {
       d.step = (d.step + 1).clamp(1, kWizardSteps);
+    });
+  }
+
+  /// Jump to a specific wizard step from the Review screen.
+  void goToStep(int step) {
+    final target = step.clamp(1, kWizardSteps);
+    _update((d) => d.step = target);
+  }
+
+  /// Re-read profile-owned dietary/allergen preferences after returning from
+  /// Profile. The request always submits the latest saved profile values.
+  void syncProfilePreferences() {
+    final profile = authController.profile;
+    if (profile == null) return;
+
+    final diet = <DietaryPref>{};
+    for (final item in (profile['diet'] as List? ?? const [])) {
+      final value = _dietFromProfileValue(item.toString());
+      if (value != null) diet.add(value);
+    }
+
+    final allergens = <Allergen>{};
+    for (final item in (profile['allergens'] as List? ?? const [])) {
+      final value = _allergenFromProfileValue(item.toString());
+      if (value != null) allergens.add(value);
+    }
+
+    _update((d) {
+      d.diet
+        ..clear()
+        ..addAll(diet);
+      d.allergens
+        ..clear()
+        ..addAll(allergens);
     });
   }
 
@@ -250,17 +354,19 @@ class RequestController extends GetxController {
     isSubmitting.value = true;
     submitErrorKey.value = null;
 
+    final householdSize = int.tryParse(authController.profile?['household']?.toString() ?? '');
     final body = <String, dynamic>{
-      'cats': [
-        for (final item in draft.value.categories) item.api,
+      'categories': [
+        for (final item in draft.value.categories) item.requestApi,
       ],
-      'method': draft.value.method?.api,
-      'notes': draft.value.notes,
-      'diet': [
-        for (final item in draft.value.diet) item.api,
+      'method': draft.value.method?.requestApi,
+      'householdSize': householdSize ?? 0,
+      'notes': draft.value.notes.trim(),
+      'dietary': [
+        for (final item in profileDiet) item.profileApi,
       ],
       'allergens': [
-        for (final item in draft.value.allergens) item.api,
+        for (final item in profileAllergens) item.profileApi,
       ],
     };
 

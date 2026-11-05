@@ -5,8 +5,14 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:intl/intl.dart' as intl;
 
+import 'app_localizations_ar.dart';
 import 'app_localizations_en.dart';
 import 'app_localizations_es.dart';
+import 'app_localizations_fr.dart';
+import 'app_localizations_hi.dart';
+import 'app_localizations_pt.dart';
+import 'app_localizations_vi.dart';
+import 'app_localizations_zh.dart';
 
 // ignore_for_file: type=lint
 
@@ -94,8 +100,16 @@ abstract class AppLocalizations {
 
   /// A list of this localizations delegate's supported locales.
   static const List<Locale> supportedLocales = <Locale>[
+    Locale('ar'),
     Locale('en'),
-    Locale('es')
+    Locale('es'),
+    Locale('fr'),
+    Locale('hi'),
+    Locale('pt'),
+    Locale('pt', 'BR'),
+    Locale('vi'),
+    Locale('zh'),
+    Locale.fromSubtags(languageCode: 'zh', scriptCode: 'Hans')
   ];
 
   /// App name
@@ -1295,13 +1309,13 @@ abstract class AppLocalizations {
   /// No description provided for @s4Title.
   ///
   /// In en, this message translates to:
-  /// **'Diet & Allergens'**
+  /// **'Review your request'**
   String get s4Title;
 
   /// No description provided for @s4Sub.
   ///
   /// In en, this message translates to:
-  /// **'Sent to the nonprofit for packing only.'**
+  /// **'Check everything before you submit.'**
   String get s4Sub;
 
   /// No description provided for @s5Title.
@@ -1391,7 +1405,7 @@ abstract class AppLocalizations {
   /// No description provided for @editInProfile.
   ///
   /// In en, this message translates to:
-  /// **'Edit in profile'**
+  /// **'Edit in Settings'**
   String get editInProfile;
 
   /// No description provided for @editInSettings.
@@ -1399,6 +1413,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Edit in Settings'**
   String get editInSettings;
+
+  /// No description provided for @rvDietNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Dietary preferences and allergens come from your profile. To update them, go to Settings.'**
+  String get rvDietNote;
 
   /// No description provided for @householdSizeNote.
   ///
@@ -1409,7 +1429,7 @@ abstract class AppLocalizations {
   /// No description provided for @dietTitle.
   ///
   /// In en, this message translates to:
-  /// **'Dietary preferences'**
+  /// **'Diet Preferences'**
   String get dietTitle;
 
   /// No description provided for @allergensTitle.
@@ -2399,13 +2419,13 @@ abstract class AppLocalizations {
   /// No description provided for @resetPasswordSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'We\'ll send a reset link to your email.'**
+  /// **'We\'ll send a 6-digit code to your email.'**
   String get resetPasswordSubtitle;
 
   /// No description provided for @sendResetLinkBtn.
   ///
   /// In en, this message translates to:
-  /// **'Send Reset Link'**
+  /// **'Send OTP'**
   String get sendResetLinkBtn;
 
   /// No description provided for @checkYourInboxTitle.
@@ -2513,20 +2533,50 @@ abstract class AppLocalizations {
   /// No description provided for @checkInboxTitle.
   ///
   /// In en, this message translates to:
-  /// **'Check your inbox.'**
+  /// **'Enter verification code'**
   String get checkInboxTitle;
 
   /// No description provided for @checkInboxBody.
   ///
   /// In en, this message translates to:
-  /// **'We sent a reset link to {email}. The link expires in 15 minutes.'**
+  /// **'We sent a 6-digit code to {email}. Enter it below to continue.'**
   String checkInboxBody(String email);
 
   /// No description provided for @resendLink.
   ///
   /// In en, this message translates to:
-  /// **'Resend link'**
+  /// **'Resend code'**
   String get resendLink;
+
+  /// No description provided for @otpVerifyBtn.
+  ///
+  /// In en, this message translates to:
+  /// **'Verify code'**
+  String get otpVerifyBtn;
+
+  /// No description provided for @otpIncomplete.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the 6-digit code.'**
+  String get otpIncomplete;
+
+  /// No description provided for @otpInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'That code is invalid or expired. Please try again.'**
+  String get otpInvalid;
+
+  /// No description provided for @otpSendFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'We couldn\'t send the code. Please try again.'**
+  String get otpSendFailed;
+
+  /// No description provided for @otpResent.
+  ///
+  /// In en, this message translates to:
+  /// **'A new code has been sent.'**
+  String get otpResent;
 
   /// No description provided for @confirmPasswordMismatch.
   ///
@@ -2539,6 +2589,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Edit'**
   String get edit;
+
+  /// No description provided for @editHouseholdNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Household size is managed from your profile for now.'**
+  String get editHouseholdNote;
 }
 
 class _AppLocalizationsDelegate
@@ -2551,20 +2607,64 @@ class _AppLocalizationsDelegate
   }
 
   @override
-  bool isSupported(Locale locale) =>
-      <String>['en', 'es'].contains(locale.languageCode);
+  bool isSupported(Locale locale) => <String>[
+        'ar',
+        'en',
+        'es',
+        'fr',
+        'hi',
+        'pt',
+        'vi',
+        'zh'
+      ].contains(locale.languageCode);
 
   @override
   bool shouldReload(_AppLocalizationsDelegate old) => false;
 }
 
 AppLocalizations lookupAppLocalizations(Locale locale) {
+  // Lookup logic when language+script codes are specified.
+  switch (locale.languageCode) {
+    case 'zh':
+      {
+        switch (locale.scriptCode) {
+          case 'Hans':
+            return AppLocalizationsZhHans();
+        }
+        break;
+      }
+  }
+
+  // Lookup logic when language+country codes are specified.
+  switch (locale.languageCode) {
+    case 'pt':
+      {
+        switch (locale.countryCode) {
+          case 'BR':
+            return AppLocalizationsPtBr();
+        }
+        break;
+      }
+  }
+
   // Lookup logic when only language code is specified.
   switch (locale.languageCode) {
+    case 'ar':
+      return AppLocalizationsAr();
     case 'en':
       return AppLocalizationsEn();
     case 'es':
       return AppLocalizationsEs();
+    case 'fr':
+      return AppLocalizationsFr();
+    case 'hi':
+      return AppLocalizationsHi();
+    case 'pt':
+      return AppLocalizationsPt();
+    case 'vi':
+      return AppLocalizationsVi();
+    case 'zh':
+      return AppLocalizationsZh();
   }
 
   throw FlutterError(

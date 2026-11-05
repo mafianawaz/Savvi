@@ -35,19 +35,23 @@ class RequestDetailController extends GetxController {
   }
 
   Future<void> load() async {
-    final cached = _cached();
-    if (cached != null) {
-      request.value = cached;
-      return;
-    }
-
     isLoading.value = true;
     errorKey.value = null;
 
+    // Always ask the backend for the detail record. The detail endpoint
+    // returns richer populated data than the list endpoint. The shared list
+    // remains a graceful fallback for transient detail failures.
     final result = await api.getRequest(requestId);
     result.when(
       ok: (json) => request.value = MemberRequest.fromJson(json),
-      err: (failure) => errorKey.value = failure.messageKey,
+      err: (failure) {
+        final cached = _cached();
+        if (cached != null) {
+          request.value = cached;
+        } else {
+          errorKey.value = failure.messageKey;
+        }
+      },
     );
 
     isLoading.value = false;

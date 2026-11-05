@@ -122,17 +122,21 @@ enum RequestStatus {
   /// l10n key for the member-facing label, e.g. `st_out_for_delivery`.
   String get l10nKey => 'st_$api';
 
-  static RequestStatus fromApi(String v) => values.firstWhere(
-        (e) => e.api == v,
-        orElse: () => RequestStatus.submitted,
-      );
+  static RequestStatus fromApi(String v) {
+    final normalized = v.trim().toLowerCase().replaceAll(RegExp(r'[\s-]+'), '_');
+    return values.firstWhere(
+      (e) => e.api.toLowerCase() == normalized,
+      orElse: () => RequestStatus.submitted,
+    );
+  }
 
   /// Nullable lookup — returns null for values that aren't request statuses
   /// (e.g. notification types like Food Access Alerts), so callers can tell
   /// "unknown" apart from a real `submitted`.
   static RequestStatus? tryFromApi(String v) {
+    final normalized = v.trim().toLowerCase().replaceAll(RegExp(r'[\s-]+'), '_');
     for (final e in values) {
-      if (e.api == v) return e;
+      if (e.api.toLowerCase() == normalized) return e;
     }
     return null;
   }

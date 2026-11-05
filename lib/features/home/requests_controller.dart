@@ -2,6 +2,7 @@ import 'package:get/get.dart';
 
 import '../../core/network/savvi_api.dart';
 import '../../data/models/member_request.dart';
+import '../../data/models/request_status.dart';
 
 /// Loads the member's requests from the backend. Shared by Home (in-progress
 /// preview) and Activity (full list). Call [load] on init and [refresh] on
@@ -87,25 +88,29 @@ class RequestsController extends GetxController {
     return active.first;
   }
 
-  /// Cancels [requestId] (optimistic with rollback — remove locally, restore
-  /// on failure). Returns null on success or an error key on failure, so the
-  /// caller (Activity) can toast the localized message.
+  /// Cancels [requestId] through the live backend. On success the item stays
+  /// in the shared list as Cancelled so History/All update immediately.
+  /// Returns null on success or an error key on failure.
   Future<String?> cancel(String requestId) async {
     final index = requests.indexWhere((r) => r.id == requestId);
-
     if (index == -1) return null;
 
-    final removed = requests[index];
-    requests.removeAt(index);
-
+    final previous = requests[index];
     final result = await api.cancelRequest(requestId);
 
     return result.when(
-      ok: (_) => null,
-      err: (failure) {
-        requests.insert(index, removed); // rollback
-        return failure.messageKey;
+      ok: (_) {
+        // Keep the request in the local list as Cancelled so History/All
+        // immediately reflect the backend transition without waiting for a
+        // second GET. A subsequent refresh remains the source of truth.
+        requests[index] = previous.copyWith(
+          status: RequestStatus.cancelled,
+          canCancel: false,
+        );
+        return null;
       },
+      err: (failure) => failure.messageKey,
     );
   }
+
 }

@@ -1,14 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'core/auth/token_storage.dart';
+import 'core/notifications/one_signal_service.dart';
 import 'core/auth/user_storage.dart';
 import 'core/localization/locale_controller.dart';
 import 'core/network/savvi_api.dart';
+import 'core/network/api_result.dart';
 import 'core/state/providers.dart';
 import 'core/state/shell_nav.dart';
 import 'core/formatting/formatters.dart';
+import 'data/mock/mock_savvi_api.dart';
 import 'features/app/savvi_app.dart';
 import 'features/auth/auth_controller.dart';
 import 'features/home/requests_controller.dart';
@@ -68,6 +72,15 @@ Future<void> main() async {
   // App-level services: AppConfig, ApiClient, SavviApi, Fmt
   AppBindings.init();
 
+  // Mock mode: a token/user persisted by an earlier LIVE run would make
+  // AuthController.restoreSession() skip sign-in and open Home straight away
+  // (with every call then failing). Drop any session that isn't a mock one.
+  if (Get.find<AppConfig>().useMockApi &&
+      Get.find<TokenStorage>().accessToken != kMockAccessToken) {
+    await Get.find<TokenStorage>().clear();
+    await Get.find<UserStorage>().clear();
+  }
+
   // Session controllers
   Get.put<AuthController>(
     AuthController(
@@ -105,6 +118,18 @@ Future<void> main() async {
 
   // Signed-in shell (bottom-nav) state
   Get.put<ShellController>(ShellController(), permanent: true);
+
+  // OneSignal is shared by Android and iOS. The observer also handles a
+  // subscription ID that becomes available after the initial auth request.
+  OneSignalService.instance.setPlayerIdHandler((playerId) async {
+    if (Get.find<TokenStorage>().hasAccessToken) {
+      final result = await Get.find<SavviApi>().updateOneSignalPlayerId(playerId);
+      if (result is ApiErr<void>) {
+        debugPrint('[OneSignal] Player ID sync returned an API error.');
+      }
+    }
+  });
+  await OneSignalService.instance.initialize(requestPermission: true);
 
   runApp(const SavviApp());
 }

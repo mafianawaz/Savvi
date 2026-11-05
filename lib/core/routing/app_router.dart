@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../features/app/stage_placeholder.dart';
+import '../../features/splash/splash_screen.dart';
 import '../../features/auth/auth_controller.dart';
 import '../../features/auth/sign_in_screen.dart';
 import '../../features/access/access_link_screen.dart';
@@ -34,6 +35,7 @@ import '../../data/models/onboarding.dart';
 class Routes {
   Routes._();
 
+  static const splash = '/splash';
   static const signIn = '/sign-in';
   static const accessLink = '/access';
   static const qrAccess = '/qr-access';
@@ -68,6 +70,11 @@ class AppPages {
   AppPages._();
 
   static final routes = <GetPage>[
+    GetPage(
+      name: Routes.splash,
+      page: () => const SplashScreen(),
+    ),
+
     GetPage(
       name: Routes.signIn,
       page: () => const SignInScreen(),

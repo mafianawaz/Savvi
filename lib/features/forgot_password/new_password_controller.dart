@@ -5,18 +5,26 @@ import 'package:get/get.dart';
 import '../../core/network/savvi_api.dart';
 import '../../core/routing/app_router.dart';
 import '../../l10n/app_localizations.dart';
+import '../../shared/patterns/error_text.dart';
 import '../../shared/patterns/feedback.dart';
 
 class NewPasswordController extends GetxController {
   NewPasswordController({
     required this.api,
     required this.email,
+    this.fromSecurity = false,
   });
 
   final SavviApi api;
   final String email;
 
+  /// True when opened from Settings → Security & Password by a signed-in
+  /// member. Same form, but success/cancel return to Settings instead of
+  /// tearing down the stack to the recovery-complete / sign-in screens.
+  final bool fromSecurity;
+
   final formKey = GlobalKey<FormState>();
+  final oldPasswordController = TextEditingController();
   final passwordController = TextEditingController();
   final confirmController = TextEditingController();
 
@@ -25,6 +33,7 @@ class NewPasswordController extends GetxController {
 
   @override
   void onClose() {
+    oldPasswordController.dispose();
     passwordController.dispose();
     confirmController.dispose();
     super.onClose();
@@ -49,15 +58,27 @@ class NewPasswordController extends GetxController {
     isSubmitting.value = true;
 
     try {
-      debugPrint('[PASSWORD] reset password email=$email');
-
-      final result = await api.resetPassword(
-        email: email,
-        password: passwordController.text,
-      );
+      final result = fromSecurity
+          ? await api.changePassword(
+              oldPassword: oldPasswordController.text,
+              newPassword: passwordController.text,
+            )
+          : await api.resetPassword(
+              email: email,
+              password: passwordController.text,
+            );
 
       result.when(
         ok: (_) {
+          if (fromSecurity) {
+            SavFeedback.toast(
+              context,
+              l.passwordUpdatedTitle,
+              tone: FeedbackTone.success,
+            );
+            Get.back();
+            return;
+          }
           // Remove the entire recovery stack. A successful reset should
           // never allow the user to navigate back into a stale OTP state.
           Get.offAllNamed(Routes.passwordUpdated);
@@ -67,6 +88,13 @@ class NewPasswordController extends GetxController {
             '[PASSWORD] reset failed status=${failure.status} '
             'detail=${failure.detail}',
           );
+          if (context.mounted) {
+            SavFeedback.toast(
+              context,
+              errText(l, failure.messageKey),
+              tone: FeedbackTone.error,
+            );
+          }
         },
       );
     } finally {
@@ -74,5 +102,6 @@ class NewPasswordController extends GetxController {
     }
   }
 
-  void cancel() => Get.offAllNamed(Routes.signIn);
+  void cancel() =>
+      fromSecurity ? Get.back() : Get.offAllNamed(Routes.signIn);
 }

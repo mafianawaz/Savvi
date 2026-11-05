@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:get/get.dart';
 import 'package:go_router/go_router.dart';
 
@@ -206,7 +205,11 @@ import 'notifications_controller.dart';
 //   }
 // }
 class NotificationsScreen extends StatelessWidget {
-  NotificationsScreen({super.key});
+  NotificationsScreen({super.key}) {
+    // Fetch only when the authenticated member opens the notification center;
+    // the controller is registered globally before login.
+    logic.loadNotifications();
+  }
 
   final NotificationsController logic = Get.find<NotificationsController>();
 
@@ -331,13 +334,19 @@ class NotificationsScreen extends StatelessWidget {
 
               ...logic.notifications.map(
                     (n) => Padding(
-                  padding:
-                  const EdgeInsets.only(bottom: SavSpace.x8),
-                  child: NotificationCard(
-                    notification: n,
-                  ),
+                  padding: const EdgeInsets.only(bottom: SavSpace.x8),
+                  child: NotificationCard(notification: n),
                 ),
               ),
+
+              if (logic.hasMore.value)
+                Center(
+                  child: TextButton.icon(
+                    onPressed: logic.loading ? null : logic.loadMoreNotifications,
+                    icon: const Icon(Icons.expand_more),
+                    label: const Text('Load more'),
+                  ),
+                ),
 
               const SizedBox(height: SavSpace.x20),
 
@@ -658,6 +667,22 @@ class NotificationCard extends StatelessWidget {
               radius: 5,
               backgroundColor: SavColors.navy,
             ),
+          IconButton(
+            tooltip: 'Delete notification',
+            visualDensity: VisualDensity.compact,
+            icon: const Icon(Icons.delete_outline, color: SavColors.red, size: 20),
+            onPressed: () async {
+              final result = await logic.deleteNotification(notification.id);
+              if (!context.mounted) return;
+              if (!result.ok) {
+                SavFeedback.toast(
+                  context,
+                  errText(AppLocalizations.of(context), result.errorKey!),
+                  tone: FeedbackTone.error,
+                );
+              }
+            },
+          ),
         ],
       ),
     );

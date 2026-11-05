@@ -2,17 +2,20 @@
 /// with a food request for nonprofit packing only. Backend string ids are
 /// authoritative; these mirror them.
 enum DietaryPref {
-  senior('senior'),
-  lowSodium('low_sodium'),
-  diabetic('diabetic'),
-  vegetarian('vegetarian'),
-  vegan('vegan'),
-  halal('halal'),
-  noPork('no_pork'),
-  glutenFree('gluten_free');
+  senior('senior', 'Senior-Friendly Foods'),
+  lowSodium('low_sodium', 'Low sodium'),
+  diabetic('diabetic', 'Diabetic-friendly'),
+  vegetarian('vegetarian', 'Vegetarian'),
+  vegan('vegan', 'Vegan'),
+  halal('halal', 'Halal-friendly'),
+  noPork('no_pork', 'No pork'),
+  glutenFree('gluten_free', 'Gluten-free');
 
-  const DietaryPref(this.api);
+  const DietaryPref(this.api, this.profileApi);
   final String api;
+  /// Value accepted by the profile PATCH endpoint. Keep this separate from
+  /// [api] because request APIs may use compact/internal identifiers.
+  final String profileApi;
 
   static DietaryPref? tryFromApi(String v) {
     for (final d in values) {
@@ -23,18 +26,20 @@ enum DietaryPref {
 }
 
 enum Allergen {
-  peanuts('peanuts'),
-  treeNuts('tree_nuts'),
-  milk('milk'),
-  eggs('eggs'),
-  soy('soy'),
-  wheat('wheat'),
-  fish('fish'),
-  shellfish('shellfish'),
-  sesame('sesame');
+  peanuts('peanuts', 'Peanuts'),
+  treeNuts('tree_nuts', 'Tree nuts'),
+  milk('milk', 'Milk/Dairy'),
+  eggs('eggs', 'Eggs'),
+  soy('soy', 'Soy'),
+  wheat('wheat', 'Wheat/Gluten'),
+  fish('fish', 'Fish'),
+  shellfish('shellfish', 'Shellfish'),
+  sesame('sesame', 'Sesame');
 
-  const Allergen(this.api);
+  const Allergen(this.api, this.profileApi);
   final String api;
+  /// Value accepted by the profile PATCH endpoint.
+  final String profileApi;
 
   static Allergen? tryFromApi(String v) {
     for (final a in values) {

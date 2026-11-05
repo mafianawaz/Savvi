@@ -8,19 +8,28 @@ import '../../shared/widgets/sav_button.dart';
 import '../../shared/widgets/sav_inputs.dart';
 import 'new_password_controller.dart';
 import '../../core/network/savvi_api.dart';
+import '../auth/auth_controller.dart';
 
+/// New-password form. Used by the forgot-password flow (email passed via route
+/// arguments) and, with [fromSecurity], by Settings → Security & Password
+/// (email taken from the signed-in member).
 class NewPasswordScreen extends StatelessWidget {
-  const NewPasswordScreen({super.key});
+  const NewPasswordScreen({super.key, this.fromSecurity = false});
+
+  final bool fromSecurity;
 
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context);
     final args = Get.arguments as Map? ?? {};
-    final email = args['email'] as String? ?? '';
+    final email = fromSecurity
+        ? (Get.find<AuthController>().profile?['email'] as String? ?? '')
+        : (args['email'] as String? ?? '');
     return GetBuilder<NewPasswordController>(
       init: NewPasswordController(
         api: Get.find<SavviApi>(),
         email: email,
+        fromSecurity: fromSecurity,
       ),
       builder: (controller) {
         return Scaffold(
@@ -72,6 +81,20 @@ class NewPasswordScreen extends StatelessWidget {
                       style: const TextStyle(fontFamily: SavFonts.sans, fontSize: 12.5, color: SavColors.txt3, height: 1.4),
                     ),
                     const SizedBox(height: SavSpace.x20),
+
+                    if (fromSecurity) ...[
+                      SavField(
+                        label: 'Old password',
+                        required: true,
+                        controller: controller.oldPasswordController,
+                        hint: 'Enter your current password',
+                        obscure: true,
+                        validator: (v) => (v == null || v.isEmpty)
+                            ? l.valRequired
+                            : null,
+                      ),
+                      const SizedBox(height: SavSpace.x16),
+                    ],
 
                     // Handles obscure toggle, live strength bar, and the 4
                     // requirement chips already — no need to rebuild any of that.

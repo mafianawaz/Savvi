@@ -1,10 +1,4 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 
-import '../../core/routing/app_router.dart';
-import '../../core/state/shell_nav.dart';
-import '../../core/theme/tokens.dart';
 
 /// Deep-link target for `/profile`. Profile lives as a single shell tab, so this
 /// activates the Profile tab and redirects to the shell instead of building a

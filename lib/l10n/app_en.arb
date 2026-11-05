@@ -1,9 +1,6 @@
 {
   "@@locale": "en",
   "appName": "Savvi",
-  "@appName": {
-    "description": "App name"
-  },
   "relToday": "Today",
   "relYesterday": "Yesterday",
   "relTomorrow": "Tomorrow",
@@ -268,8 +265,8 @@
   "s2Sub": "Choose how you'd like to receive your support.",
   "s3Title": "Household & Contact",
   "s3Sub": "These come from your profile. Update them there if anything has changed.",
-  "s4Title": "Diet & Allergens",
-  "s4Sub": "Sent to the nonprofit for packing only.",
+  "s4Title": "Review your request",
+  "s4Sub": "Check everything before you submit.",
   "s5Title": "Review your request",
   "s5Sub": "Check everything before you submit.",
   "stepNext": "Next",
@@ -284,10 +281,11 @@
   "notesLabel": "Notes for the nonprofit",
   "notesHint": "Anything helpful for the nonprofit to know?",
   "fromProfile": "From your profile",
-  "editInProfile": "Edit in profile",
+  "editInProfile": "Edit in Settings",
   "editInSettings": "Edit in Settings",
+  "rvDietNote": "Dietary preferences and allergens come from your profile. To update them, go to Settings.",
   "householdSizeNote": "To update household size, go to Settings. Defaults to your profile. You can change it for this request only.",
-  "dietTitle": "Dietary preferences",
+  "dietTitle": "Diet Preferences",
   "allergensTitle": "Allergens",
   "dSenior": "Senior-friendly foods",
   "dLowSodium": "Low sodium",
@@ -459,8 +457,8 @@
   "resetEmailLabel": "Reset link will be sent to",
   "helpContactPlaceholder": "Contact details will appear here when available.",
   "resetPasswordTitle": "Reset password",
-  "resetPasswordSubtitle": "We'll send a reset link to your email.",
-  "sendResetLinkBtn": "Send Reset Link",
+  "resetPasswordSubtitle": "We'll send a 6-digit code to your email.",
+  "sendResetLinkBtn": "Send OTP",
   "checkYourInboxTitle": "Check your inbox.",
   "resetLinkSentBody": "We sent a reset link to {email}. The link expires in 15 minutes.",
   "@resetLinkSentBody": {
@@ -492,16 +490,25 @@
   "passwordUpdatedTitle": "Password updated.",
   "passwordUpdatedBody": "Your Savvi password has been changed. Sign in with your new password.",
   "goToSignIn": "Go to sign in",
-  "checkInboxTitle": "Check your inbox.",
-  "checkInboxBody": "We sent a reset link to {email}. The link expires in 15 minutes.",
+  "checkInboxTitle": "Enter verification code",
+  "checkInboxBody": "We sent a 6-digit code to {email}. Enter it below to continue.",
+  "resendLink": "Resend code",
+  "otpVerifyBtn": "Verify code",
+  "otpIncomplete": "Enter the 6-digit code.",
+  "otpInvalid": "That code is invalid or expired. Please try again.",
+  "otpSendFailed": "We couldn't send the code. Please try again.",
+  "otpResent": "A new code has been sent.",
+  "confirmPasswordMismatch": "Passwords don't match.",
+  "edit": "Edit",
+  "editHouseholdNote": "Household size is managed from your profile for now.",
+  "@appName": {
+    "description": "App name"
+  },
   "@checkInboxBody": {
     "placeholders": {
       "email": {
         "type": "String"
       }
     }
-  },
-  "resendLink": "Resend link",
-  "confirmPasswordMismatch": "Passwords don't match.",
-  "edit": "Edit"
+  }
 }

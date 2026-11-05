@@ -11,6 +11,7 @@ import '../../shared/widgets/sav_button.dart';
 import '../auth/auth_controller.dart';
 import '../home/request_card.dart';
 import '../home/requests_controller.dart';
+import '../../core/network/savvi_api.dart';
 import 'activity_controller.dart';
 
 /// My Requests (v56): a tabbed list (Active / History / All) of the
@@ -29,6 +30,7 @@ class ActivityScreen extends StatelessWidget {
     return GetBuilder<ActivityController>(
       init: ActivityController(
         requestsController: Get.find<RequestsController>(),
+        api: Get.find<SavviApi>(),
       ),
       builder: (controller) {
         return Column(
@@ -80,13 +82,12 @@ class ActivityScreen extends StatelessWidget {
                   return StateViews.loading();
                 }
 
-                if (controller.errorKey != null &&
-                    controller.requestsController.requests.isEmpty) {
+                if (controller.errorKey != null && controller.filtered.isEmpty) {
                   return StateViews.error(
                     title: l.stateErrorTitle,
                     message: l.errUnknown,
                     retryLabel: l.tryAgain,
-                    onRetry: controller.requestsController.load,
+                    onRetry: () => controller.loadTab(controller.tab.value),
                   );
                 }
 
@@ -127,7 +128,7 @@ class ActivityScreen extends StatelessWidget {
                           Routes.requestDetail,
                           arguments: r.id,
                         ),
-                        onDelete: r.isActive
+                        onDelete: r.isActive && r.canCancel
                             ? () => _confirmCancel(context, l, controller, r.id)
                             : null,
                       );

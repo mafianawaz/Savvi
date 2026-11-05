@@ -5,6 +5,7 @@ import '../auth/token_storage.dart';
 import '../formatting/formatters.dart';
 import '../localization/locale_controller.dart';
 import '../network/api_client.dart';
+import '../../data/mock/mock_savvi_api.dart';
 import '../network/live_savvi_api.dart';
 import '../network/savvi_api.dart';
 
@@ -18,9 +19,15 @@ class AppConfig {
   final String apiBaseUrl;
   final bool useMockApi;
 
+  /// ── ONE-LINE SWITCH ───────────────────────────────────────────────────
+  /// true  → every API call is served by [MockSavviApi] (no network, any
+  ///         email/password signs in) — use this for visual QA of all screens.
+  /// false → [LiveSavviApi] against [apiBaseUrl].
+  static const bool kUseMockApi = false;
+
   static const dev = AppConfig(
-    apiBaseUrl: 'https://ed10-203-128-15-206.ngrok-free.app/',
-    useMockApi: false,
+    apiBaseUrl: 'https://63d7-103-147-42-81.ngrok-free.app/savur/api/v1',
+    useMockApi: kUseMockApi,
   );
 }
 
@@ -46,7 +53,9 @@ class AppBindings {
     );
 
     Get.put<SavviApi>(
-      LiveSavviApi(Get.find<ApiClient>()),
+      Get.find<AppConfig>().useMockApi
+          ? MockSavviApi()
+          : LiveSavviApi(Get.find<ApiClient>()),
       permanent: true,
     );
 

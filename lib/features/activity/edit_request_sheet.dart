@@ -20,10 +20,10 @@ import '../home/requests_controller.dart';
 /// method, and notes. Once approved, categories and method lock — the
 /// sheet shows a notice instead and only contact/notes stay editable.
 ///
-/// NOTE: Save calls [SavviApi.editRequest] and refreshes the shared
-/// [RequestsController] list, matching the pattern used by cancel. The mock
-/// backend doesn't persist edits (see mock_savvi_api.dart) — wiring the live
-/// backend is a follow-up stage, same as elsewhere in this prototype.
+/// NOTE: Save calls the live PATCH /food-request/{requestId} contract with
+/// the complete request snapshot expected by the backend. Household size,
+/// dietary preferences, and allergens are preserved from the current request;
+/// profile-owned values are not silently changed by editing a request.
 // class EditRequestSheet extends StatefulWidget {
 //   const EditRequestSheet({super.key, required this.request});
 //
@@ -185,7 +185,7 @@ import '../home/requests_controller.dart';
 //                     _infoRow(l.fieldPhone, _phone ?? '\u2014'),
 //                     const SizedBox(height: SavSpace.x14),
 //                     SavButton(
-//                       label: '${l.editInProfile} \u2192',
+//                       label: l.edit,
 //                       variant: SavButtonVariant.ghost,
 //                       onPressed: () {
 //                         Get.back();
@@ -388,10 +388,10 @@ import '../home/requests_controller.dart';
 /// method, and notes. Once approved, categories and method lock — the
 /// sheet shows a notice instead and only contact/notes stay editable.
 ///
-/// NOTE: Save calls [SavviApi.editRequest] and refreshes the shared
-/// [RequestsController] list, matching the pattern used by cancel. The mock
-/// backend doesn't persist edits (see mock_savvi_api.dart) — wiring the live
-/// backend is a follow-up stage, same as elsewhere in this prototype.
+/// NOTE: Save calls the live PATCH /food-request/{requestId} contract with
+/// the complete request snapshot expected by the backend. Household size,
+/// dietary preferences, and allergens are preserved from the current request;
+/// profile-owned values are not silently changed by editing a request.
 class EditRequestSheet extends StatefulWidget {
   const EditRequestSheet({super.key, required this.request});
 
@@ -560,7 +560,7 @@ class _EditRequestSheetState extends State<EditRequestSheet> {
                     _infoRow(l.fieldPhone, _phone ?? '\u2014'),
                     const SizedBox(height: SavSpace.x14),
                     SavButton(
-                      label: '${l.editInProfile} \u2192',
+                      label: l.edit,
                       variant: SavButtonVariant.ghost,
                       onPressed: () {
                         Get.back();
@@ -573,26 +573,8 @@ class _EditRequestSheetState extends State<EditRequestSheet> {
               const SizedBox(height: SavSpace.x20),
               const _SectionLabel('HOUSEHOLD SIZE'),
               const SizedBox(height: SavSpace.x10),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(l.householdSize,
-                      style: const TextStyle(
-                          fontFamily: SavFonts.sans,
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                          color: SavColors.txt3)),
-                  Text(r.household,
-                      style: const TextStyle(
-                          fontFamily: SavFonts.sans,
-                          fontSize: 14,
-                          fontWeight: FontWeight.w700,
-                          color: SavColors.navy)),
-                ],
-              ),
-              const SizedBox(height: SavSpace.x8),
               Text(
-                l.householdSizeNote,
+                l.editHouseholdNote,
                 style: const TextStyle(
                   fontFamily: SavFonts.sans,
                   fontSize: 11.5,
@@ -655,22 +637,29 @@ class _EditRequestSheetState extends State<EditRequestSheet> {
   Future<void> _save(BuildContext context, AppLocalizations l) async {
     setState(() => _saving = true);
 
+    final householdSize = int.tryParse(widget.request.household) ?? 0;
     final body = <String, dynamic>{
+      'categories': [for (final c in _categories) c.requestApi],
+      'method': _method.requestApi,
+      'householdSize': householdSize,
       'notes': _notes.text.trim(),
-      if (!_locked) 'cats': [for (final c in _categories) c.api],
-      if (!_locked) 'method': _method.api,
+      'dietary': [for (final d in widget.request.diet) d.profileApi],
+      'allergens': [for (final a in widget.request.allergens) a.profileApi],
     };
 
     final result = await Get.find<SavviApi>().editRequest(widget.request.id, body);
-    if (Get.isRegistered<RequestsController>()) {
-      await Get.find<RequestsController>().refresh();
-    }
 
     if (!mounted) return;
     setState(() => _saving = false);
 
     result.when(
-      ok: (_) {
+      ok: (_) async {
+        // Only refresh after the PATCH has actually succeeded. A refresh
+        // failure must never turn a successful edit into a false error.
+        if (Get.isRegistered<RequestsController>()) {
+          await Get.find<RequestsController>().refresh();
+        }
+        if (!mounted) return;
         Navigator.of(context).pop();
         SavFeedback.toast(context, l.editRequest, tone: FeedbackTone.success);
       },

@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import '../../core/auth/token_storage.dart';
+import '../../core/notifications/one_signal_service.dart';
 import '../../core/auth/user_storage.dart';
 import '../../data/models/user.dart';
 import '../../core/localization/locale_controller.dart';
@@ -74,6 +75,8 @@ class AuthController extends GetxController {
         user: savedUser,
         profile: savedUser.toProfileMap(),
       );
+      // Refresh persisted data so the app uses the server as source of truth.
+      refreshProfile();
     }
   }
   /// Sign in with email + password.
@@ -87,9 +90,11 @@ class AuthController extends GetxController {
   }) async {
     state.value = const AuthBusy();
 
+    final playerId = await OneSignalService.instance.waitForPlayerId();
     final result = await api.login(
       email: email,
       password: password,
+      oneSignalPlayerId: playerId,
     );
 
     if (result is ApiErr<Map<String, dynamic>>) {
@@ -118,12 +123,33 @@ class AuthController extends GetxController {
     await tokenStorage.save(accessToken: token);
     await userStorage.save(user);
 
+    // /user/me is the source of truth after authentication. It may contain
+    // populated fields/profileOptions that are not returned by login.
+    final profileResult = await api.getProfile();
+    final authoritativeUser = profileResult is ApiOk<Map<String, dynamic>>
+        ? UserModel.fromJson(profileResult.data)
+        : user;
+    if (authoritativeUser.id.isNotEmpty) {
+      await userStorage.save(authoritativeUser);
+    }
+
     final next = AuthSignedIn(
-      user: user,
-      profile: user.toProfileMap(),
+      user: authoritativeUser,
+      profile: authoritativeUser.toProfileMap(),
     );
     state.value = next;
     return next;
+  }
+
+  Future<UserModel?> refreshProfile() async {
+    if (!tokenStorage.hasAccessToken) return null;
+    final result = await api.getProfile();
+    if (result is! ApiOk<Map<String, dynamic>>) return user;
+    final refreshed = UserModel.fromJson(result.data);
+    if (refreshed.id.isEmpty) return user;
+    await userStorage.save(refreshed);
+    state.value = AuthSignedIn(user: refreshed, profile: refreshed.toProfileMap());
+    return refreshed;
   }
 
   void signOut() {
@@ -138,7 +164,24 @@ class AuthController extends GetxController {
     final current = state.value;
 
     if (current is AuthSignedIn) {
-      final merged = {...current.profile, ...updates};
+      final merged = Map<String, dynamic>.from(current.user.toJson());
+      merged.addAll(updates);
+
+      // Contact PATCH fields are flat on the API, while UserModel keeps
+      // address as a nested value. Normalize them before rebuilding the model.
+      final contactKeys = {'street', 'city', 'state', 'zip', 'coordinates'};
+      if (updates.keys.any(contactKeys.contains)) {
+        final currentAddress = current.user.address?.toJson() ?? <String, dynamic>{};
+        for (final key in contactKeys) {
+          if (updates.containsKey(key)) currentAddress[key] = updates[key];
+        }
+        merged['address'] = currentAddress;
+      }
+      if (updates.containsKey('phone')) merged['phoneNumber'] = updates['phone'];
+      if (updates.containsKey('household')) merged['householdSize'] = updates['household'];
+      if (updates.containsKey('diet')) merged['dietary'] = updates['diet'];
+      if (updates.containsKey('allergens')) merged['allergens'] = updates['allergens'];
+
       final updatedUser = UserModel.fromJson(merged);
       state.value = AuthSignedIn(
         user: updatedUser,

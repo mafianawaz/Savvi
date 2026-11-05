@@ -72,10 +72,10 @@ class MemberNotification {
             ? NotificationKind.request
             : NotificationKind.general);
     return MemberNotification(
-      id: j['id'] as String,
+      id: (j['uuid'] ?? j['id'] ?? j['notificationId'] ?? '').toString(),
       kind: kind,
-      at: DateTime.tryParse(j['at']?.toString() ?? '') ?? DateTime.now(),
-      read: j['read'] == true,
+      at: DateTime.tryParse((j['createdAt'] ?? j['at'] ?? j['created_at'] ?? j['timestamp'])?.toString() ?? '') ?? DateTime.now(),
+      read: j['read'] == true || j['isRead'] == true || j['is_read'] == true,
       title: j['title'] as String?,
       body: j['body'] as String?,
       status: status,

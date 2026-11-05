@@ -1,4 +1,3 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/network/savvi_api.dart';
 import '../../core/state/providers.dart';
@@ -238,14 +237,36 @@ class EditProfileController extends GetxController {
     return EditProfileState(
       diet: {
         for (final item in (profile['diet'] as List? ?? const []))
-          if (DietaryPref.tryFromApi(item as String) case final value?) value,
+          if (DietaryPref.tryFromApi(item as String) case final value?) value
+          else if (_dietFromProfileValue(item as String) case final value?) value,
       },
       allergens: {
         for (final item in (profile['allergens'] as List? ?? const []))
-          if (Allergen.tryFromApi(item as String) case final value?) value,
+          if (Allergen.tryFromApi(item as String) case final value?) value
+          else if (_allergenFromProfileValue(item as String) case final value?) value,
       },
-      household: (profile['household'] as String?) ?? '1',
+      household: _householdValue(profile['household'] ?? profile['householdSize']),
     );
+  }
+
+  DietaryPref? _dietFromProfileValue(String value) {
+    for (final item in DietaryPref.values) {
+      if (item.profileApi == value) return item;
+    }
+    return null;
+  }
+
+  Allergen? _allergenFromProfileValue(String value) {
+    for (final item in Allergen.values) {
+      if (item.profileApi == value) return item;
+    }
+    return null;
+  }
+
+  String _householdValue(dynamic value) {
+    final parsed = int.tryParse(value?.toString() ?? '');
+    if (parsed == null || parsed < 1) return '1';
+    return parsed >= 10 ? '10+' : parsed.toString();
   }
 
   void _patchAuth(Map<String, dynamic> updates) {
@@ -264,7 +285,7 @@ class EditProfileController extends GetxController {
       savingContact: true,
     );
 
-    final result = await api.updateProfile(fields);
+    final result = await api.updateContact(fields);
 
     return result.when(
       ok: (_) {
@@ -304,15 +325,13 @@ class EditProfileController extends GetxController {
       savingHousehold: true,
     );
 
-    final result = await api.updateProfile({
-      'household': value,
-    });
+    final result = await api.updateHousehold(
+      int.tryParse(value == '10+' ? '10' : value) ?? 1,
+    );
 
     return result.when(
       ok: (_) {
-        _patchAuth({
-          'household': value,
-        });
+        _patchAuth({'householdSize': int.tryParse(value == '10+' ? '10' : value) ?? 1});
 
         state.value = state.value.copyWith(
           savingHousehold: false,
@@ -352,17 +371,13 @@ class EditProfileController extends GetxController {
       savingChip: diet.api,
     );
 
-    final result = await api.updateProfile({
-      'diet': [
-        for (final item in next) item.api,
-      ],
-    });
+    final result = await api.updateDietary([for (final item in next) item.profileApi]);
 
     return result.when(
       ok: (_) {
         _patchAuth({
-          'diet': [
-            for (final item in next) item.api,
+          'dietary': [
+            for (final item in next) item.profileApi,
           ],
         });
 
@@ -412,17 +427,13 @@ class EditProfileController extends GetxController {
       savingChip: allergen.api,
     );
 
-    final result = await api.updateProfile({
-      'allergens': [
-        for (final item in next) item.api,
-      ],
-    });
+    final result = await api.updateAllergens([for (final item in next) item.profileApi]);
 
     return result.when(
       ok: (_) {
         _patchAuth({
           'allergens': [
-            for (final item in next) item.api,
+            for (final item in next) item.profileApi,
           ],
         });
 

@@ -12,8 +12,19 @@ enum RequestMethod {
   const RequestMethod(this.api);
   final String api;
 
-  static RequestMethod fromApi(String v) =>
-      values.firstWhere((e) => e.api == v, orElse: () => RequestMethod.pickup);
+  String get requestApi => switch (this) {
+        RequestMethod.pickup => 'Pickup',
+        RequestMethod.delivery => 'Delivery',
+      };
+
+  static RequestMethod fromApi(String v) {
+    final normalized = v.trim().toLowerCase();
+    return values.firstWhere(
+      (e) => e.api.toLowerCase() == normalized ||
+          e.requestApi.toLowerCase() == normalized,
+      orElse: () => RequestMethod.pickup,
+    );
+  }
 }
 
 /// Approved Savvi member-facing food categories (locked taxonomy).
@@ -35,6 +46,27 @@ enum FoodCategory {
   const FoodCategory(this.api, {required this.controlled});
   final String api;
   final bool controlled;
+
+  String get requestApi => switch (this) {
+        FoodCategory.produce => 'Produce',
+        FoodCategory.dairy => 'Dairy',
+        FoodCategory.meatProtein => 'Meat / Protein',
+        FoodCategory.preparedMeals => 'Prepared Meals',
+        FoodCategory.bakeryBread => 'Bakery / Bread',
+        FoodCategory.pantry => 'Pantry',
+        FoodCategory.frozen => 'Frozen',
+        FoodCategory.snacksBeverages => 'Snacks & Beverages',
+        FoodCategory.babyFood => 'Baby Food',
+        FoodCategory.infantFormula => 'Infant Formula',
+      };
+
+  static FoodCategory? tryFromRequestApi(String v) {
+    final normalized = v.trim().toLowerCase();
+    for (final c in values) {
+      if (c.requestApi.toLowerCase() == normalized) return c;
+    }
+    return null;
+  }
 
   static FoodCategory? tryFromApi(String v) {
     for (final c in values) {

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -15,7 +17,9 @@ import '../../shared/widgets/sav_button.dart';
 import '../../shared/widgets/sav_cards.dart';
 import '../../shared/widgets/sav_inputs.dart';
 import '../auth/auth_controller.dart';
+import '../request/request_controller.dart';
 import 'profile_controller.dart';
+import 'address_search_service.dart';
 
 const _householdOptions = <String>[
   '1', '2', '3', '4', '5', '6', '7', '8', '9', '10+'
@@ -63,6 +67,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
   final _city = TextEditingController();
   final _state = TextEditingController();
   final _zip = TextEditingController();
+  final _addressSearch = AddressSearchService();
+  Timer? _addressDebounce;
+  List<AddressSuggestion> _addressSuggestions = const [];
+  List<double> _coordinates = const [];
 
   late final AuthController _authController = Get.find<AuthController>();
   late final EditProfileController _controller =
@@ -79,10 +87,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
     _city.text = (p['city'] as String?) ?? '';
     _state.text = (p['state'] as String?) ?? '';
     _zip.text = (p['zip'] as String?) ?? '';
+    final rawCoordinates = p['coordinates'];
+    if (rawCoordinates is List) {
+      _coordinates = rawCoordinates.map((e) => double.tryParse(e.toString())).whereType<double>().toList();
+    }
   }
 
   @override
   void dispose() {
+    _addressDebounce?.cancel();
     for (final c in [_email, _phone, _street, _city, _state, _zip]) {
       c.dispose();
     }
@@ -90,6 +103,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Map<String, dynamic> get _profile => _authController.profile ?? const {};
+
+  void _handleProfileBack() {
+    if (_shellController.requestReturn.value &&
+        Get.isRegistered<RequestController>()) {
+      Get.find<RequestController>().syncProfilePreferences();
+      _shellController.setRequestReturn(false);
+    }
+    Get.back();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -109,7 +131,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         automaticallyImplyLeading: false,
         title: InkWell(
           borderRadius: SavRadius.field,
-          onTap: () => Get.back(),
+          onTap: _handleProfileBack,
           child: Padding(
             padding: const EdgeInsets.symmetric(
                 horizontal: SavSpace.x8, vertical: SavSpace.x8),
@@ -362,7 +384,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
           child: InkWell(
             onTap: () {
               _shellController.setRequestReturn(false);
-              Get.toNamed(Routes.request);
+              if (Get.isRegistered<RequestController>()) {
+                Get.find<RequestController>().syncProfilePreferences();
+              }
+              Get.back();
             },
             borderRadius: SavRadius.card,
             child: Padding(
@@ -439,6 +464,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 controller: _email,
                 keyboardType: TextInputType.emailAddress,
                 validator: Validators.email(l),
+                readOnly: true,
               ),
               const SizedBox(height: SavSpace.x10),
               SavField(
@@ -455,7 +481,28 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 label: l.fieldStreet,
                 controller: _street,
                 validator: Validators.required(l),
+                onChanged: _onAddressChanged,
               ),
+              if (_addressSuggestions.isNotEmpty)
+                Container(
+                  margin: const EdgeInsets.only(top: 4),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: SavColors.border),
+                  ),
+                  child: Column(
+                    children: [
+                      for (final suggestion in _addressSuggestions.take(5))
+                        ListTile(
+                          dense: true,
+                          leading: const Icon(Icons.location_on_outlined),
+                          title: Text(suggestion.description),
+                          onTap: () => _selectAddress(suggestion),
+                        ),
+                    ],
+                  ),
+                ),
               const SizedBox(height: SavSpace.x10),
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -498,6 +545,40 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
+  void _onAddressChanged(String value) {
+    _addressDebounce?.cancel();
+    if (value.trim().length < 3) {
+      if (mounted) setState(() => _addressSuggestions = const []);
+      return;
+    }
+    _addressDebounce = Timer(const Duration(milliseconds: 350), () async {
+      try {
+        final suggestions = await _addressSearch.autocomplete(value);
+        if (mounted) setState(() => _addressSuggestions = suggestions);
+      } catch (e) {
+        debugPrint('[PLACES] autocomplete error: $e');
+        if (mounted) setState(() => _addressSuggestions = const []);
+      }
+    });
+  }
+
+  Future<void> _selectAddress(AddressSuggestion suggestion) async {
+    FocusScope.of(context).unfocus();
+    setState(() => _addressSuggestions = const []);
+    try {
+      final address = await _addressSearch.resolve(suggestion.placeId);
+      if (!mounted || address == null) return;
+      _street.text = address.street.isNotEmpty ? address.street : suggestion.description;
+      _city.text = address.city;
+      _state.text = address.state;
+      _zip.text = address.zip;
+      _coordinates = address.coordinates;
+      setState(() {});
+    } catch (_) {
+      // The user can still edit the address manually and save it.
+    }
+  }
+
   Future<void> _saveContact(AppLocalizations l) async {
     if (!(_formKey.currentState?.validate() ?? false)) {
       SavFeedback.toast(context, l.errFix, tone: FeedbackTone.warning);
@@ -506,11 +587,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
     final r = await _controller.saveContact({
       'email': _email.text.trim(),
-      'phone': _phone.text.trim(),
+      'phoneNumber': _phone.text.trim(),
       'street': _street.text.trim(),
       'city': _city.text.trim(),
       'state': _state.text.trim(),
       'zip': _zip.text.trim(),
+      'coordinates': _coordinates,
     });
 
     if (!mounted) return;

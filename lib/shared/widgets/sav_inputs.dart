@@ -19,6 +19,7 @@ class SavField extends StatelessWidget {
     this.validator,
     this.maxLines = 1,
     this.onChanged,
+    this.readOnly = false,
   });
 
   final String label;
@@ -33,6 +34,7 @@ class SavField extends StatelessWidget {
   final String? Function(String?)? validator;
   final int maxLines;
   final ValueChanged<String>? onChanged;
+  final bool readOnly;
 
   @override
   Widget build(BuildContext context) {
@@ -70,6 +72,7 @@ class SavField extends StatelessWidget {
           validator: validator,
           maxLines: obscure ? 1 : maxLines,
           onChanged: onChanged,
+          readOnly: readOnly,
           style: const TextStyle(
             fontFamily: SavFonts.sans,
             fontSize: 15,

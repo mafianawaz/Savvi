@@ -5,6 +5,13 @@ plugins {
     id("dev.flutter.flutter-gradle-plugin")
 }
 
+// Apply Google Services only after the Firebase Android app file is supplied.
+// This keeps local builds working while clearly requiring google-services.json
+// for real FCM delivery.
+if (file("google-services.json").exists()) {
+    apply(plugin = "com.google.gms.google-services")
+}
+
 android {
     namespace = "com.example.savvi"
     compileSdk = flutter.compileSdkVersion

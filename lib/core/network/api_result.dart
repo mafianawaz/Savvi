@@ -40,6 +40,15 @@ class ApiFailure {
   final int? status;
   final String? detail; // developer-facing only; never shown to members
 
+  /// Readable text for logs. Without this, printing a failure produced
+  /// "Instance of 'ApiFailure'". User-facing copy still comes from
+  /// [messageKey] via `errText`, never from this.
+  @override
+  String toString() =>
+      'ApiFailure(kind: ${kind.name}, key: $messageKey'
+      '${status != null ? ', status: $status' : ''}'
+      '${detail != null ? ', detail: $detail' : ''})';
+
   factory ApiFailure.network() => const ApiFailure(
         kind: ApiFailureKind.network,
         messageKey: 'err_network',

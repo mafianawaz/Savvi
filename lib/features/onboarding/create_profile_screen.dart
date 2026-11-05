@@ -13,6 +13,7 @@ import '../../shared/widgets/password_field.dart';
 import '../../shared/widgets/sav_button.dart';
 import '../../shared/widgets/sav_inputs.dart';
 import '../access/access_controller.dart';
+import '../profile/address_search_service.dart';
 import 'profile_controller.dart';
 
 class CreateProfileScreen extends StatefulWidget {
@@ -69,6 +70,26 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
 
     final householdSize = _household > 11 ? 11 : _household;
 
+    // Backend requires coordinates. Manually typed addresses have none, so
+    // geocode them; fall back to the invite location's coordinates.
+    final fullAddress = [
+      _street.text.trim(),
+      _city.text.trim(),
+      _state.text.trim().toUpperCase(),
+      _zip.text.trim(),
+    ].where((e) => e.isNotEmpty).join(', ');
+    var coordinates = await AddressSearchService().geocode(fullAddress);
+    if (coordinates.length < 2) coordinates = grant.coordinates ?? const [];
+    if (!mounted) return;
+    if (coordinates.length < 2) {
+      SavFeedback.toast(
+        context,
+        'We couldn\'t locate that address. Please check the street, city, state and ZIP.',
+        tone: FeedbackTone.error,
+      );
+      return;
+    }
+
     final body = <String, dynamic>{
       'role': 'savvy',
       'inviteCode': grant.code,
@@ -84,15 +105,15 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
       'householdSize': householdSize,
       'password': _password.text,
       'privacyConsent': _consent,
-      if (grant.coordinates != null) 'coordinates': grant.coordinates,
+      'coordinates': coordinates,
     };
 
     debugPrint('[SIGNUP] submitting signup request');
     debugPrint(
       '[SIGNUP] email=${body['email']} '
-      'inviteCode=${body['inviteCode']} '
-      'source=${body['source']} '
-      'householdSize=${body['householdSize']}',
+          'inviteCode=${body['inviteCode']} '
+          'source=${body['source']} '
+          'householdSize=${body['householdSize']}',
     );
 
     final approval = await profileController.submit(body);
@@ -352,9 +373,9 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
 
   Widget _consentRow(AppLocalizations l) {
     void toggle() => setState(() {
-          _consent = !_consent;
-          if (_consent) _consentError = false;
-        });
+      _consent = !_consent;
+      if (_consent) _consentError = false;
+    });
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,

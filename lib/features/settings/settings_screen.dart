@@ -574,14 +574,28 @@ class SettingsScreen extends StatelessWidget {
     // Language code -> display label. Keyed by code (not Locale) so the
     // dropdown's value type stays simple and equality just works.
     final options = <String, String>{
-      SavviLocales.enUS.languageCode: l.langEnglish,
-      SavviLocales.esUS.languageCode: l.langSpanish,
+      'en': 'English',
+      'es': 'Spanish',
+      'vi': 'Vietnamese',
+      'zh': '简体中文',
+      'ar': 'العربية',
+      'fr': 'Français',
+      'pt': 'Português (Brasil)',
+      'hi': 'हिन्दी',
     };
 
     Future<void> onSelect(String? code) async {
       if (code == null) return;
-      final value =
-      code == 'es' ? SavviLocales.esUS : SavviLocales.enUS;
+      final value = switch (code) {
+        'es' => SavviLocales.esUS,
+        'vi' => SavviLocales.vi,
+        'zh' => SavviLocales.zhHans,
+        'ar' => SavviLocales.ar,
+        'fr' => SavviLocales.fr,
+        'pt' => SavviLocales.ptBR,
+        'hi' => SavviLocales.hi,
+        _ => SavviLocales.enUS,
+      };
 
       if (localeController.locale.value.languageCode == code) return;
 
@@ -589,7 +603,7 @@ class SettingsScreen extends StatelessWidget {
 
       if (context.mounted) {
         // Toast in the newly selected language, not the prior one.
-        final nl = code == 'es' ? AppLocalizationsEs() : AppLocalizationsEn();
+        final nl = lookupAppLocalizations(value);
 
         SavFeedback.toast(
           context,
@@ -636,27 +650,27 @@ class SettingsScreen extends StatelessWidget {
                   fontWeight: FontWeight.w700,
                   color: SavColors.navy,
                 ),
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   filled: true,
                   fillColor: SavColors.page,
-                  contentPadding: const EdgeInsets.symmetric(
+                  contentPadding: EdgeInsets.symmetric(
                     horizontal: SavSpace.x14,
                     vertical: SavSpace.x12,
                   ),
                   border: OutlineInputBorder(
                     borderRadius: SavRadius.field,
                     borderSide:
-                    const BorderSide(color: SavColors.border, width: 1.5),
+                    BorderSide(color: SavColors.border, width: 1.5),
                   ),
                   enabledBorder: OutlineInputBorder(
                     borderRadius: SavRadius.field,
                     borderSide:
-                    const BorderSide(color: SavColors.border, width: 1.5),
+                    BorderSide(color: SavColors.border, width: 1.5),
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: SavRadius.field,
                     borderSide:
-                    const BorderSide(color: SavColors.navy, width: 1.5),
+                    BorderSide(color: SavColors.navy, width: 1.5),
                   ),
                 ),
                 items: [
@@ -670,17 +684,17 @@ class SettingsScreen extends StatelessWidget {
               ),
             );
           }),
-          const SizedBox(height: SavSpace.x10),
-          Text(
-            l.langHelp,
-            style: const TextStyle(
-              fontFamily: SavFonts.sans,
-              fontSize: 12,
-              height: 1.45,
-              fontWeight: FontWeight.w500,
-              color: SavColors.txt3,
-            ),
-          ),
+          // const SizedBox(height: SavSpace.x10),
+          // Text(
+          //   l.langHelp,
+          //   style: const TextStyle(
+          //     fontFamily: SavFonts.sans,
+          //     fontSize: 12,
+          //     height: 1.45,
+          //     fontWeight: FontWeight.w500,
+          //     color: SavColors.txt3,
+          //   ),
+          // ),
         ],
       ),
     );

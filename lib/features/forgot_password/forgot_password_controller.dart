@@ -5,9 +5,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 
+import '../../core/network/api_result.dart';
 import '../../core/network/savvi_api.dart';
 import '../../core/routing/app_router.dart';
 import '../../l10n/app_localizations.dart';
+import '../../shared/patterns/error_text.dart';
 import '../../shared/patterns/feedback.dart';
 
 class ForgotPasswordController extends GetxController {
@@ -77,6 +79,11 @@ class ForgotPasswordController extends GetxController {
         ok: (_) {
           _startCooldown();
 
+          if (!navigate && context.mounted) {
+            otpController.clear();
+            SavFeedback.toast(context, l.otpResent, tone: FeedbackTone.success);
+          }
+
           if (navigate) {
             Get.toNamed(
               Routes.checkInbox,
@@ -89,6 +96,9 @@ class ForgotPasswordController extends GetxController {
             '[PASSWORD] request OTP failed status=${failure.status} '
             'detail=${failure.detail}',
           );
+          if (context.mounted) {
+            SavFeedback.toast(context, _serverText(failure, l.otpSendFailed), tone: FeedbackTone.error);
+          }
         },
       );
     } finally {
@@ -104,10 +114,10 @@ class ForgotPasswordController extends GetxController {
     final raw = otpController.text.trim();
     final otp = int.tryParse(raw);
 
-    if (otp == null || raw.length < 4) {
+    if (otp == null || raw.length != 6) {
       SavFeedback.toast(
         context,
-        'Enter the verification code.',
+        l.otpIncomplete,
         tone: FeedbackTone.warning,
       );
       return;
@@ -128,7 +138,7 @@ class ForgotPasswordController extends GetxController {
           if (data['valid'] == false || data['verified'] == false) {
             SavFeedback.toast(
               context,
-              'The verification code is invalid or expired.',
+              l.otpInvalid,
               tone: FeedbackTone.error,
             );
             return;
@@ -144,11 +154,31 @@ class ForgotPasswordController extends GetxController {
             '[PASSWORD] verify OTP failed status=${failure.status} '
             'detail=${failure.detail}',
           );
+          final status = failure.status ?? 0;
+          final badCode = status >= 400 && status < 500 && status != 401;
+          if (badCode) otpController.clear();
+          if (context.mounted) {
+            SavFeedback.toast(
+              context,
+              _serverText(failure, badCode ? l.otpInvalid : errText(l, failure.messageKey)),
+              tone: FeedbackTone.error,
+            );
+          }
         },
       );
     } finally {
       isSubmitting.value = false;
     }
+  }
+
+  /// Message coming from the backend (e.g. "Gmail is not configured") when it
+  /// sent one, otherwise the localized fallback.
+  String _serverText(ApiFailure failure, String fallback) {
+    final detail = failure.detail?.trim();
+    final fromServer = (failure.status ?? 0) >= 400;
+    return (fromServer && detail != null && detail.isNotEmpty)
+        ? detail
+        : fallback;
   }
 
   void _startCooldown([int seconds = 60]) {

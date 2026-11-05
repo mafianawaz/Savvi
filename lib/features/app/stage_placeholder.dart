@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-
 import '../../core/localization/locale_controller.dart';
 import '../../core/theme/tokens.dart';
 import '../../shared/widgets/sav_button.dart';

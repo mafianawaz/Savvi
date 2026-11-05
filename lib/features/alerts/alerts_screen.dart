@@ -155,8 +155,14 @@ class _AlertCardState extends State<_AlertCard> {
   bool _editing = false;
 
   bool get _confirmed => widget.alert.rsvp > 0;
-  int get _max =>
-      widget.household < widget.alert.left ? widget.household : widget.alert.left;
+  int get _max {
+    final limits = <int>[widget.household];
+    if (widget.alert.left < 999999) limits.add(widget.alert.left);
+    if (widget.alert.maxPeople != null && widget.alert.maxPeople! > 0) {
+      limits.add(widget.alert.maxPeople!);
+    }
+    return limits.reduce((a, b) => a < b ? a : b);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -230,7 +236,9 @@ class _AlertCardState extends State<_AlertCard> {
                             ),
                             const SizedBox(width: SavSpace.x6),
                             Text(
-                              (isHot ? l.alertTypeHot : l.alertTypeDist)
+                              (a.alertType.trim().isNotEmpty
+                                      ? a.alertType.trim()
+                                      : (isHot ? l.alertTypeHot : l.alertTypeDist))
                                   .toUpperCase(),
                               style: const TextStyle(
                                 fontFamily: SavFonts.sans,
@@ -271,6 +279,26 @@ class _AlertCardState extends State<_AlertCard> {
                       color: SavColors.txt2,
                     ),
                   ),
+                  if (a.description.isNotEmpty) ...[
+                    const SizedBox(height: SavSpace.x6),
+                    Text(
+                      a.description,
+                      style: const TextStyle(
+                        fontFamily: SavFonts.sans,
+                        fontSize: 13,
+                        height: 1.35,
+                        color: SavColors.txt2,
+                      ),
+                    ),
+                  ],
+                  if (a.requirements?.isNotEmpty == true) ...[
+                    const SizedBox(height: SavSpace.x6),
+                    _metaRow(Icons.info_outline, 'Requirements: ${a.requirements}'),
+                  ],
+                  if (a.allergenInfo?.isNotEmpty == true) ...[
+                    const SizedBox(height: SavSpace.x6),
+                    _metaRow(Icons.warning_amber_outlined, 'Allergens: ${a.allergenInfo}'),
+                  ],
                   const SizedBox(height: SavSpace.x10),
                   _metaRow(
                     Icons.schedule,
@@ -342,26 +370,28 @@ class _AlertCardState extends State<_AlertCard> {
             ),
           ),
         ),
-        const SizedBox(width: SavSpace.x8),
-        Container(
-          padding: const EdgeInsets.symmetric(
-            horizontal: SavSpace.x10,
-            vertical: 3,
-          ),
-          decoration: BoxDecoration(
-            color: SavColors.greenLight,
-            borderRadius: SavRadius.pill,
-          ),
-          child: Text(
-            l.alertSpotsLeft(left),
-            style: const TextStyle(
-              fontFamily: SavFonts.sans,
-              fontSize: 11,
-              fontWeight: FontWeight.w700,
-              color: SavColors.pillGreenFg,
+        if (left < 999999) ...[
+          const SizedBox(width: SavSpace.x8),
+          Container(
+            padding: const EdgeInsets.symmetric(
+              horizontal: SavSpace.x10,
+              vertical: 3,
+            ),
+            decoration: BoxDecoration(
+              color: SavColors.greenLight,
+              borderRadius: SavRadius.pill,
+            ),
+            child: Text(
+              l.alertSpotsLeft(left),
+              style: const TextStyle(
+                fontFamily: SavFonts.sans,
+                fontSize: 11,
+                fontWeight: FontWeight.w700,
+                color: SavColors.pillGreenFg,
+              ),
             ),
           ),
-        ),
+        ],
       ],
     );
   }

@@ -11,10 +11,22 @@ class SavviLocales {
 
   static const enUS = Locale('en', 'US');
   static const esUS = Locale('es', 'US');
+  static const vi = Locale('vi');
+  static const zhHans = Locale.fromSubtags(languageCode: 'zh', scriptCode: 'Hans');
+  static const ar = Locale('ar');
+  static const fr = Locale('fr');
+  static const ptBR = Locale('pt', 'BR');
+  static const hi = Locale('hi');
 
   static const supported = <Locale>[
     enUS,
     esUS,
+    vi,
+    zhHans,
+    ar,
+    fr,
+    ptBR,
+    hi,
   ];
 
   static const fallback = enUS;
@@ -28,13 +40,31 @@ class SavviLocales {
         return esUS;
       case 'en-US':
         return enUS;
+      case 'vi':
+        return vi;
+      case 'zh-Hans':
+        return zhHans;
+      case 'ar':
+        return ar;
+      case 'fr':
+        return fr;
+      case 'pt-BR':
+        return ptBR;
+      case 'hi':
+        return hi;
       default:
         return fallback;
     }
   }
 
   static String tag(Locale locale) {
-    return '${locale.languageCode}-${locale.countryCode}';
+    if (locale.languageCode == 'zh' && locale.scriptCode == 'Hans') {
+      return 'zh-Hans';
+    }
+    if (locale.countryCode != null) {
+      return '${locale.languageCode}-${locale.countryCode}';
+    }
+    return locale.languageCode;
   }
 }
 

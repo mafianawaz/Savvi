@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import '../../core/network/api_result.dart';
 import '../../core/network/savvi_api.dart';
 import '../../core/routing/app_router.dart';
 import '../../data/models/onboarding.dart';
 import '../../l10n/app_localizations.dart';
+import '../../shared/patterns/error_text.dart';
 import '../../shared/patterns/feedback.dart';
 
 class AccessController extends GetxController {
@@ -34,6 +36,21 @@ class AccessController extends GetxController {
       default:
         return l.accessErrInvalid;
     }
+  }
+
+  /// Member-facing text for a failed verify call. Never `failure.toString()`.
+  /// A 4xx from the invite endpoint means the code/link was rejected, so the
+  /// "couldn't verify" copy is the accurate message; connection, timeout and
+  /// 5xx problems get their own localized text.
+  String _failureMessage(AppLocalizations l, ApiFailure failure) {
+    final status = failure.status;
+    if (failure.kind == ApiFailureKind.server &&
+        status != null &&
+        status >= 400 &&
+        status < 500) {
+      return l.accessErrInvalid;
+    }
+    return errText(l, failure.messageKey);
   }
 
   Future<AccessGrant?> verifyAccess(BuildContext context) async {
@@ -67,7 +84,7 @@ class AccessController extends GetxController {
 
           return AccessGrant(
             state: AccessState.invalid,
-            message: failure.toString(),
+            message: _failureMessage(l, failure),
           );
         },
       );
@@ -130,7 +147,7 @@ class AccessController extends GetxController {
 
           return AccessGrant(
             state: AccessState.invalid,
-            message: failure.toString(),
+            message: _failureMessage(l, failure),
           );
         },
       );

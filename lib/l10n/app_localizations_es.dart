@@ -659,10 +659,10 @@ class AppLocalizationsEs extends AppLocalizations {
       'Provienen de tu perfil. Actualízalos ahí si algo cambió.';
 
   @override
-  String get s4Title => 'Dieta y alérgenos';
+  String get s4Title => 'Revisa tu solicitud';
 
   @override
-  String get s4Sub => 'Se envía a la organización solo para el empaque.';
+  String get s4Sub => 'Comprueba todo antes de enviarla.';
 
   @override
   String get s5Title => 'Revisa tu solicitud';
@@ -710,10 +710,14 @@ class AppLocalizationsEs extends AppLocalizations {
   String get fromProfile => 'De tu perfil';
 
   @override
-  String get editInProfile => 'Editar en el perfil';
+  String get editInProfile => 'Editar en Configuración';
 
   @override
   String get editInSettings => 'Editar en Configuración';
+
+  @override
+  String get rvDietNote =>
+      'Las preferencias dietéticas y los alérgenos provienen de tu perfil. Para actualizarlos, ve a Configuración.';
 
   @override
   String get householdSizeNote =>
@@ -1244,10 +1248,10 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get resetPasswordSubtitle =>
-      'Enviaremos un enlace de restablecimiento a tu correo.';
+      'Enviaremos un código de 6 dígitos a tu correo.';
 
   @override
-  String get sendResetLinkBtn => 'Enviar enlace';
+  String get sendResetLinkBtn => 'Enviar código';
 
   @override
   String get checkYourInboxTitle => 'Revisa tu correo.';
@@ -1308,19 +1312,40 @@ class AppLocalizationsEs extends AppLocalizations {
   String get goToSignIn => 'Ir a iniciar sesión';
 
   @override
-  String get checkInboxTitle => 'Revisa tu bandeja de entrada.';
+  String get checkInboxTitle => 'Ingresa el código de verificación';
 
   @override
   String checkInboxBody(String email) {
-    return 'Enviamos un enlace de restablecimiento a $email. El enlace vence en 15 minutos.';
+    return 'Enviamos un código de 6 dígitos a $email. Ingrésalo abajo para continuar.';
   }
 
   @override
-  String get resendLink => 'Reenviar enlace';
+  String get resendLink => 'Reenviar código';
+
+  @override
+  String get otpVerifyBtn => 'Verificar código';
+
+  @override
+  String get otpIncomplete => 'Ingresa el código de 6 dígitos.';
+
+  @override
+  String get otpInvalid =>
+      'El código no es válido o ha vencido. Inténtalo de nuevo.';
+
+  @override
+  String get otpSendFailed =>
+      'No pudimos enviar el código. Inténtalo de nuevo.';
+
+  @override
+  String get otpResent => 'Se envió un nuevo código.';
 
   @override
   String get confirmPasswordMismatch => 'Las contraseñas no coinciden.';
 
   @override
   String get edit => 'Editar';
+
+  @override
+  String get editHouseholdNote =>
+      'Por ahora, el tamaño del hogar se administra desde tu perfil.';
 }

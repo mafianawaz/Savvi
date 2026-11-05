@@ -71,19 +71,19 @@ class CheckInboxScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: SavSpace.x24),
                   SavField(
-                    label: 'Verification code',
+                    label: l.checkInboxTitle,
                     controller: controller.otpController,
-                    hint: 'Enter the code from your email',
+                    hint: '6-digit code',
                     keyboardType: TextInputType.number,
                     inputFormatters:  [
                       FilteringTextInputFormatter.digitsOnly,
-                      LengthLimitingTextInputFormatter(8),
+                      LengthLimitingTextInputFormatter(6),
                     ],
                   ),
                   const SizedBox(height: SavSpace.x16),
                   Obx(
                     () => SavButton(
-                      label: 'Verify code',
+                      label: l.otpVerifyBtn,
                       busy: controller.isSubmitting.value,
                       onPressed: () => controller.verifyOtp(context, email),
                     ),

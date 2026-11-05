@@ -27,6 +27,7 @@ abstract interface class SavviApi {
   Future<ApiResult<Map<String, dynamic>>> login({
     required String email,
     required String password,
+    String? oneSignalPlayerId,
   });
 
   /// Legacy session contract kept for compatibility with older flows.
@@ -44,6 +45,14 @@ abstract interface class SavviApi {
 
   // ── Profile ────────────────────────────────────────────────────────────────
   Future<ApiResult<Map<String, dynamic>>> getProfile();
+
+  Future<ApiResult<Map<String, dynamic>>> updateContact(
+      Map<String, dynamic> body);
+  Future<ApiResult<Map<String, dynamic>>> updateDietary(
+      List<String> dietary);
+  Future<ApiResult<Map<String, dynamic>>> updateAllergens(
+      List<String> allergens);
+  Future<ApiResult<Map<String, dynamic>>> updateHousehold(int householdSize);
 
   /// Create the member profile (phone REQUIRED — validated server-side too).
   Future<ApiResult<Map<String, dynamic>>> createProfile(
@@ -70,11 +79,18 @@ abstract interface class SavviApi {
     required String password,
   });
 
+  /// Change password for the currently authenticated member.
+  Future<ApiResult<void>> changePassword({
+    required String oldPassword,
+    required String newPassword,
+  });
+
   /// Persist notification channel preferences (in-app always on; push/email).
   Future<ApiResult<void>> setNotificationPreferences(Map<String, bool> prefs);
 
   // ── Requests ───────────────────────────────────────────────────────────────
-  Future<ApiResult<List<Map<String, dynamic>>>> listRequests();
+  Future<ApiResult<List<String>>> listRequestCategories();
+  Future<ApiResult<List<Map<String, dynamic>>>> listRequests({String? tab});
   Future<ApiResult<Map<String, dynamic>>> getRequest(String requestId);
 
   /// Submit a new food support request. Backend assigns the request ID and
@@ -94,13 +110,17 @@ abstract interface class SavviApi {
   /// RSVP to a hot-meal / distribution alert (headcount capped at household).
   Future<ApiResult<Map<String, dynamic>>> rsvpAlert(
       String alertId, int headcount);
+  Future<ApiResult<Map<String, dynamic>>> updateRsvp(
+      String alertId, int headcount);
   Future<ApiResult<void>> cancelRsvp(String alertId);
 
   // ── Notifications ──────────────────────────────────────────────────────────
-  Future<ApiResult<List<Map<String, dynamic>>>> listNotifications();
+  Future<ApiResult<List<Map<String, dynamic>>>> listNotifications({int page = 1, int limit = 10});
   Future<ApiResult<void>> markNotificationRead(String id);
   Future<ApiResult<void>> markAllNotificationsRead();
   Future<ApiResult<void>> clearNotifications();
+  Future<ApiResult<void>> deleteNotification(String id);
+  Future<ApiResult<void>> updateOneSignalPlayerId(String playerId);
 
   // ── Pickup / delivery (read-only member views) ──────────────────────────────
   /// Pickup details incl. backend-issued pickup code + QR token and window.

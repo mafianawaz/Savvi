@@ -651,10 +651,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'These come from your profile. Update them there if anything has changed.';
 
   @override
-  String get s4Title => 'Diet & Allergens';
+  String get s4Title => 'Review your request';
 
   @override
-  String get s4Sub => 'Sent to the nonprofit for packing only.';
+  String get s4Sub => 'Check everything before you submit.';
 
   @override
   String get s5Title => 'Review your request';
@@ -702,17 +702,21 @@ class AppLocalizationsEn extends AppLocalizations {
   String get fromProfile => 'From your profile';
 
   @override
-  String get editInProfile => 'Edit in profile';
+  String get editInProfile => 'Edit in Settings';
 
   @override
   String get editInSettings => 'Edit in Settings';
+
+  @override
+  String get rvDietNote =>
+      'Dietary preferences and allergens come from your profile. To update them, go to Settings.';
 
   @override
   String get householdSizeNote =>
       'To update household size, go to Settings. Defaults to your profile. You can change it for this request only.';
 
   @override
-  String get dietTitle => 'Dietary preferences';
+  String get dietTitle => 'Diet Preferences';
 
   @override
   String get allergensTitle => 'Allergens';
@@ -1230,10 +1234,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get resetPasswordTitle => 'Reset password';
 
   @override
-  String get resetPasswordSubtitle => 'We\'ll send a reset link to your email.';
+  String get resetPasswordSubtitle =>
+      'We\'ll send a 6-digit code to your email.';
 
   @override
-  String get sendResetLinkBtn => 'Send Reset Link';
+  String get sendResetLinkBtn => 'Send OTP';
 
   @override
   String get checkYourInboxTitle => 'Check your inbox.';
@@ -1294,19 +1299,38 @@ class AppLocalizationsEn extends AppLocalizations {
   String get goToSignIn => 'Go to sign in';
 
   @override
-  String get checkInboxTitle => 'Check your inbox.';
+  String get checkInboxTitle => 'Enter verification code';
 
   @override
   String checkInboxBody(String email) {
-    return 'We sent a reset link to $email. The link expires in 15 minutes.';
+    return 'We sent a 6-digit code to $email. Enter it below to continue.';
   }
 
   @override
-  String get resendLink => 'Resend link';
+  String get resendLink => 'Resend code';
+
+  @override
+  String get otpVerifyBtn => 'Verify code';
+
+  @override
+  String get otpIncomplete => 'Enter the 6-digit code.';
+
+  @override
+  String get otpInvalid => 'That code is invalid or expired. Please try again.';
+
+  @override
+  String get otpSendFailed => 'We couldn\'t send the code. Please try again.';
+
+  @override
+  String get otpResent => 'A new code has been sent.';
 
   @override
   String get confirmPasswordMismatch => 'Passwords don\'t match.';
 
   @override
   String get edit => 'Edit';
+
+  @override
+  String get editHouseholdNote =>
+      'Household size is managed from your profile for now.';
 }

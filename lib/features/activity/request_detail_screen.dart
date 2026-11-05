@@ -148,7 +148,7 @@ class _Body extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                r.id,
+                r.displayCode,
                 style: const TextStyle(
                   fontFamily: SavFonts.serif,
                   fontSize: 22,
@@ -278,7 +278,7 @@ class _Body extends StatelessWidget {
     final showPickup =
         r.method == RequestMethod.pickup && _viewPickup.contains(r.status);
     final canEdit = _canEdit.contains(r.status);
-    final canCancel = _canCancel.contains(r.status);
+    final canCancel = r.canCancel && _canCancel.contains(r.status);
     final isCancelling = controller.isCancelling.value;
 
     return Column(
@@ -502,7 +502,7 @@ class _Timeline extends StatelessWidget {
                   Padding(
                     padding: const EdgeInsets.only(top: 2),
                     child: Text(
-                      fmt.time(time),
+                      fmt.dateTime(time),
                       style: const TextStyle(
                         fontFamily: SavFonts.sans,
                         fontSize: 11.5,

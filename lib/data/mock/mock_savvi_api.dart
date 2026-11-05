@@ -1,6 +1,10 @@
 import '../../core/network/api_result.dart';
 import '../../core/network/savvi_api.dart';
 
+/// Token written to storage by the mock login. main.dart uses it to tell a
+/// mock session apart from a real one left over from a live-API run.
+const String kMockAccessToken = 'mock-access-token';
+
 /// ⚠️ DEMO / PROTOTYPE ONLY — NOT FOR PRODUCTION.
 ///
 /// In-memory [SavviApi] used to run the app before the NestJS backend exists.
@@ -15,7 +19,7 @@ import '../../core/network/savvi_api.dart';
 /// This class deliberately performs NO official record generation. Where it
 /// echoes an ID (e.g. after createRequest) it reuses a fixed demo string and is
 /// annotated as such.
-abstract class MockSavviApi implements SavviApi {
+class MockSavviApi implements SavviApi {
   static const _delay = Duration(milliseconds: 450);
 
   Future<ApiResult<T>> _ok<T>(T data) async {
@@ -24,8 +28,40 @@ abstract class MockSavviApi implements SavviApi {
   }
 
   // ── Auth / session ─────────────────────────────────────────────────────────
+  /// Mock sign-in: accepts any non-empty credentials and returns the demo
+  /// member in the same {token, user} shape the live API returns.
   @override
-  Future<ApiResult<Map<String, dynamic>>> session() => _ok(_demoProfile);
+  Future<ApiResult<Map<String, dynamic>>> login({
+    required String email,
+    required String password,
+    String? oneSignalPlayerId,
+  }) =>
+      _ok({
+        'token': kMockAccessToken,
+        'user': {
+          ..._profile,
+          if (email.trim().isNotEmpty) 'email': email.trim(),
+        },
+      });
+
+  @override
+  Future<ApiResult<Map<String, dynamic>>> updateContact(Map<String, dynamic> body) =>
+      updateProfile(body);
+
+  @override
+  Future<ApiResult<Map<String, dynamic>>> updateDietary(List<String> dietary) =>
+      updateProfile({'dietary': dietary});
+
+  @override
+  Future<ApiResult<Map<String, dynamic>>> updateAllergens(List<String> allergens) =>
+      updateProfile({'allergens': allergens});
+
+  @override
+  Future<ApiResult<Map<String, dynamic>>> updateHousehold(int householdSize) =>
+      updateProfile({'householdSize': householdSize});
+
+  @override
+  Future<ApiResult<Map<String, dynamic>>> session() => _ok(_profile);
 
   @override
   Future<ApiResult<Map<String, dynamic>>> verifyAccessLink(String t) {
@@ -63,17 +99,17 @@ abstract class MockSavviApi implements SavviApi {
 
   // ── Profile ────────────────────────────────────────────────────────────────
   @override
-  Future<ApiResult<Map<String, dynamic>>> getProfile() => _ok(_demoProfile);
+  Future<ApiResult<Map<String, dynamic>>> getProfile() => _ok(_profile);
 
   @override
   Future<ApiResult<Map<String, dynamic>>> createProfile(
           Map<String, dynamic> body) =>
-      _ok({..._demoProfile, ...body, 'status': 'pending'});
+      _ok(_mergeProfile({...body, 'status': 'pending'}));
 
   @override
   Future<ApiResult<Map<String, dynamic>>> updateProfile(
           Map<String, dynamic> body) =>
-      _ok({..._demoProfile, ...body});
+      _ok(_mergeProfile(body));
 
   @override
   Future<ApiResult<void>> setLanguagePreference(String localeTag) => _ok(null);
@@ -96,12 +132,26 @@ abstract class MockSavviApi implements SavviApi {
       _ok(null);
 
   @override
+  Future<ApiResult<void>> changePassword({
+    required String oldPassword,
+    required String newPassword,
+  }) =>
+      _ok(null);
+
+  @override
   Future<ApiResult<void>> setNotificationPreferences(Map<String, bool> p) =>
       _ok(null);
 
   // ── Requests ───────────────────────────────────────────────────────────────
   @override
-  Future<ApiResult<List<Map<String, dynamic>>>> listRequests() =>
+  Future<ApiResult<List<String>>> listRequestCategories() => _ok(const [
+        'Produce', 'Dairy', 'Meat / Protein', 'Prepared Meals',
+        'Bakery / Bread', 'Pantry', 'Frozen', 'Snacks & Beverages',
+        'Baby Food', 'Infant Formula',
+      ]);
+
+  @override
+  Future<ApiResult<List<Map<String, dynamic>>>> listRequests({String? tab}) =>
       _ok(_demoRequests);
 
   @override
@@ -137,11 +187,15 @@ abstract class MockSavviApi implements SavviApi {
       _ok({'id': id, 'rsvp': n});
 
   @override
+  Future<ApiResult<Map<String, dynamic>>> updateRsvp(String id, int n) =>
+      _ok({'id': id, 'rsvp': n});
+
+  @override
   Future<ApiResult<void>> cancelRsvp(String id) => _ok(null);
 
   // ── Notifications ──────────────────────────────────────────────────────────
   @override
-  Future<ApiResult<List<Map<String, dynamic>>>> listNotifications() =>
+  Future<ApiResult<List<Map<String, dynamic>>>> listNotifications({int page = 1, int limit = 10}) =>
       _ok(_demoNotifications);
 
   @override
@@ -152,6 +206,12 @@ abstract class MockSavviApi implements SavviApi {
 
   @override
   Future<ApiResult<void>> clearNotifications() => _ok(null);
+
+  @override
+  Future<ApiResult<void>> deleteNotification(String id) => _ok(null);
+
+  @override
+  Future<ApiResult<void>> updateOneSignalPlayerId(String playerId) => _ok(null);
 
   // ── Pickup / delivery ──────────────────────────────────────────────────────
   @override
@@ -181,22 +241,60 @@ abstract class MockSavviApi implements SavviApi {
     return DateTime(d.year, d.month, d.day, hh, mm).toIso8601String();
   }
 
+  /// Demo member in the backend's UserModel shape (what /user/me returns).
   static final Map<String, dynamic> _demoProfile = {
+    '_id': 'mock-user-0117',
     'firstName': 'Tasha',
     'lastName': 'Brown',
+    'name': 'Tasha Brown',
     'email': 'tasha.brown@example.com',
-    'phone': '(713) 555-0142',
-    'street': '1809 Elgin Street',
-    'city': 'Houston',
-    'state': 'TX',
-    'zip': '77004',
-    'household': '3',
-    'memberId': 'SVVI-0117',
-    'nonprofit': 'Houston Food Recovery',
-    'status': 'approved',
-    'diet': ['senior'],
+    'phoneNumber': '(713) 555-0142',
+    'address': {
+      'street': '1809 Elgin Street',
+      'city': 'Houston',
+      'state': 'TX',
+      'zip': '77004',
+      'coordinates': <double>[],
+    },
+    'householdSize': 3,
+    'dietary': ['Senior-Friendly Foods'],
     'allergens': <String>[],
+    'memberCode': 'SVVI-0117',
+    'nonprofitName': 'Houston Food Recovery',
+    'approvalStatus': 'approved',
+    'status': 'approved',
+    'role': 'member',
+    'privacyConsent': true,
+    'termsAccepted': true,
+    'isEmailVerified': true,
   };
+
+  /// Session-lived copy so profile edits survive a refreshProfile().
+  static final Map<String, dynamic> _profile = {
+    ..._demoProfile,
+    'address': Map<String, dynamic>.from(_demoProfile['address'] as Map),
+  };
+
+  /// Applies flat PATCH-style fields onto the nested UserModel shape.
+  static Map<String, dynamic> _mergeProfile(Map<String, dynamic> body) {
+    const addressKeys = {'street', 'city', 'state', 'zip', 'coordinates'};
+    final address = Map<String, dynamic>.from(_profile['address'] as Map);
+    for (final e in body.entries) {
+      if (addressKeys.contains(e.key)) {
+        address[e.key] = e.value;
+      } else if (e.key == 'phone') {
+        _profile['phoneNumber'] = e.value;
+      } else if (e.key == 'household') {
+        _profile['householdSize'] = int.tryParse('${e.value}') ?? 1;
+      } else if (e.key == 'diet') {
+        _profile['dietary'] = e.value;
+      } else {
+        _profile[e.key] = e.value;
+      }
+    }
+    _profile['address'] = address;
+    return Map<String, dynamic>.from(_profile);
+  }
 
   static final List<Map<String, dynamic>> _demoRequests = [
     {
@@ -204,7 +302,7 @@ abstract class MockSavviApi implements SavviApi {
       'method': 'pickup',
       'status': 'submitted',
       'createdAt': _at(8, 40),
-      'cats': ['produce', 'pantry', 'baby_food'],
+      'cats': ['Produce', 'Pantry', 'Baby Food'],
       'household': '3',
       'weightLb': null,
       'statusHistory': {
@@ -218,7 +316,7 @@ abstract class MockSavviApi implements SavviApi {
       'method': 'delivery',
       'status': 'out_for_delivery',
       'createdAt': _at(8, 0),
-      'cats': ['produce', 'dairy', 'pantry'],
+      'cats': ['Produce', 'Dairy', 'Pantry'],
       'household': '3',
       'weightLb': 36,
       'etaLo': 20,
@@ -237,7 +335,7 @@ abstract class MockSavviApi implements SavviApi {
       'method': 'pickup',
       'status': 'completed',
       'createdAt': _at(9, 10, -35),
-      'cats': ['produce', 'bakery_bread', 'snacks_beverages'],
+      'cats': ['Produce', 'Bakery / Bread', 'Snacks & Beverages'],
       'household': '3',
       'weightLb': 24,
       'statusHistory': {

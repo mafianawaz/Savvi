@@ -34,6 +34,7 @@ class Fmt {
     RelativeDayWords? relativeWords,
     bool absolute = false,
   }) {
+    dt = dt.toLocal();
     if (!absolute && relativeWords != null) {
       final days = _dayDelta(dt, DateTime.now());
       if (days == 0) return relativeWords.today;
@@ -46,7 +47,7 @@ class Fmt {
   }
 
   /// Clock time, locale-appropriate 12h/24h.
-  String time(DateTime dt) => DateFormat.jm(_tag).format(dt);
+  String time(DateTime dt) => DateFormat.jm(_tag).format(dt.toLocal());
 
   /// Date + time, e.g. "Today · 8:40 AM" / "Hoy · 8:40 a. m.".
   String dateTime(DateTime dt, {RelativeDayWords? relativeWords}) =>

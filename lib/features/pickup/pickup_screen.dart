@@ -1,5 +1,7 @@
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:qr_flutter/qr_flutter.dart';
 
 import '../../core/formatting/formatters.dart';
 import '../../core/theme/tokens.dart';
@@ -129,7 +131,7 @@ class PickupScreen extends StatelessWidget {
         SavCard(
           child: Column(
             children: [
-              _row(l.requestIdLabel, r.id),
+              _row(l.requestIdLabel, r.displayCode),
               _row(l.nonprofitLabel, nonprofit),
               _row(l.pkWindow, windowLabel),
               _row(l.pkLocation, r.pickupLocation ?? l.naLabel),
@@ -330,8 +332,8 @@ class PickupScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: SavSpace.x20),
                 Center(
-                  // Backend-issued QR renders here in production; the frontend
-                  // never generates the code/QR itself.
+                  // Encode the exact backend-issued pickup code so scanning
+                  // this QR returns the same code displayed above.
                   child: Container(
                     width: 200,
                     height: 200,
@@ -340,8 +342,14 @@ class PickupScreen extends StatelessWidget {
                       borderRadius: SavRadius.card,
                       border: Border.all(color: SavColors.border, width: 1.5),
                     ),
-                    child:
-                    const Icon(Icons.qr_code_2, size: 120, color: SavColors.navy),
+                    padding: const EdgeInsets.all(SavSpace.x8),
+                    child: QrImageView(
+                      data: r.pickupCode!,
+                      version: QrVersions.auto,
+                      size: 184,
+                      backgroundColor: SavColors.page,
+                      errorCorrectionLevel: QrErrorCorrectLevel.M,
+                    ),
                   ),
                 ),
                 const SizedBox(height: SavSpace.x16),

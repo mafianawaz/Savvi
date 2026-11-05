@@ -50,7 +50,7 @@ class RequestCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      request.id,
+                      request.displayCode,
                       style: const TextStyle(
                         fontFamily: SavFonts.sans,
                         fontSize: 14,
@@ -254,7 +254,7 @@ class ActiveRequestCard extends StatelessWidget {
 
     return Semantics(
       button: onTap != null,
-      label: '${request.id}. ${Labels.status(l, request.status)}. '
+      label: '${request.displayCode}. ${Labels.status(l, request.status)}. '
           '$methodLabel \u00b7 $dateLabel'
           '${catLabel != null ? '. $catLabel' : ''}',
       excludeSemantics: true,
@@ -311,7 +311,7 @@ class ActiveRequestCard extends StatelessWidget {
                             children: [
                               Expanded(
                                 child: Text(
-                                  request.id,
+                                  request.displayCode,
                                   overflow: TextOverflow.ellipsis,
                                   style: const TextStyle(
                                     fontFamily: SavFonts.sans,
@@ -398,8 +398,8 @@ class RequestListTile extends StatelessWidget {
     final title =
         nonprofit.isEmpty ? methodLabel : '$methodLabel \u00b7 $nonprofit';
 
-    final subtitle =
-        '${request.id} \u00b7 ${fmt.dateTime(request.createdAt, relativeWords: rw)}';
+    final subtitle = '${request.displayCode} \u00b7 ';
+    final createdAt = fmt.dateTime(request.createdAt, relativeWords: rw);
 
     return SavCard(
       onTap: onTap,
@@ -448,6 +448,17 @@ class RequestListTile extends StatelessWidget {
                 const SizedBox(height: 2),
                 Text(
                   subtitle,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontFamily: SavFonts.sans,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                    color: SavColors.txt3,
+                  ),
+                ),
+                Text(
+                  createdAt,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(

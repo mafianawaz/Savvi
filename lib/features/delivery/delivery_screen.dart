@@ -112,7 +112,7 @@ class DeliveryTrackingScreen extends StatelessWidget {
               ),
               const SizedBox(height: SavSpace.x4),
               Text(
-                r.id,
+                r.displayCode,
                 style: const TextStyle(
                   fontFamily: SavFonts.sans,
                   fontSize: 14,

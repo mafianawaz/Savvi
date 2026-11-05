@@ -5,6 +5,7 @@ class UserAddress {
     this.street,
     this.city,
     this.zip,
+    this.state,
     this.type,
     this.coordinates = const [],
   });
@@ -12,6 +13,7 @@ class UserAddress {
   final String? street;
   final String? city;
   final String? zip;
+  final String? state;
   final String? type;
   final List<double> coordinates;
 
@@ -22,6 +24,7 @@ class UserAddress {
       street: json['street']?.toString(),
       city: json['city']?.toString(),
       zip: json['zip']?.toString(),
+      state: json['state']?.toString(),
       type: json['type']?.toString(),
       coordinates: rawCoordinates is List
           ? rawCoordinates
@@ -36,9 +39,32 @@ class UserAddress {
         'street': street,
         'city': city,
         'zip': zip,
+        'state': state,
         'type': type,
         'coordinates': coordinates,
       };
+}
+
+class UserSummary {
+  const UserSummary({this.id, this.firstName, this.lastName, this.name});
+  final String? id;
+  final String? firstName;
+  final String? lastName;
+  final String? name;
+
+  factory UserSummary.fromJson(dynamic json) {
+    if (json is! Map) return const UserSummary();
+    return UserSummary(
+      id: json['_id']?.toString(),
+      firstName: json['firstName']?.toString(),
+      lastName: json['lastName']?.toString(),
+      name: json['name']?.toString(),
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+    '_id': id, 'firstName': firstName, 'lastName': lastName, 'name': name,
+  };
 }
 
 class UserModel {
@@ -68,6 +94,8 @@ class UserModel {
     this.status,
     this.createdAt,
     this.updatedAt,
+    this.nonprofitName,
+    this.profileOptions = const {},
   });
 
   final String id;
@@ -82,7 +110,7 @@ class UserModel {
   final List<String> allergens;
   final bool privacyConsent;
   final String? approvalStatus;
-  final String? invitedBy;
+  final UserSummary? invitedBy;
   final String? inviteId;
   final String? locationId;
   final String? memberCode;
@@ -95,6 +123,8 @@ class UserModel {
   final String? status;
   final DateTime? createdAt;
   final DateTime? updatedAt;
+  final String? nonprofitName;
+  final Map<String, List<String>> profileOptions;
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
     return UserModel(
@@ -115,7 +145,7 @@ class UserModel {
       allergens: _strings(json['allergens']),
       privacyConsent: _bool(json['privacyConsent']),
       approvalStatus: json['approvalStatus']?.toString(),
-      invitedBy: json['invitedBy']?.toString(),
+      invitedBy: UserSummary.fromJson(json['invitedBy']),
       inviteId: json['inviteId']?.toString(),
       locationId: json['locationId']?.toString(),
       memberCode: json['memberCode']?.toString(),
@@ -128,6 +158,8 @@ class UserModel {
       status: json['status']?.toString(),
       createdAt: DateTime.tryParse(json['createdAt']?.toString() ?? ''),
       updatedAt: DateTime.tryParse(json['updatedAt']?.toString() ?? ''),
+      nonprofitName: json['nonprofitName']?.toString(),
+      profileOptions: _profileOptions(json['profileOptions']),
     );
   }
 
@@ -144,7 +176,7 @@ class UserModel {
         'allergens': allergens,
         'privacyConsent': privacyConsent,
         'approvalStatus': approvalStatus,
-        'invitedBy': invitedBy,
+        'invitedBy': invitedBy?.toJson(),
         'inviteId': inviteId,
         'locationId': locationId,
         'memberCode': memberCode,
@@ -157,6 +189,8 @@ class UserModel {
         'status': status,
         'createdAt': createdAt?.toIso8601String(),
         'updatedAt': updatedAt?.toIso8601String(),
+        'nonprofitName': nonprofitName,
+        'profileOptions': profileOptions,
       };
 
   String encode() => jsonEncode(toJson());
@@ -171,9 +205,15 @@ class UserModel {
         'id': id,
         'memberId': memberCode ?? id,
         'phone': phoneNumber,
+        'street': address?.street ?? '',
+        'city': address?.city ?? '',
+        'state': address?.state ?? '',
+        'zip': address?.zip ?? '',
+        'coordinates': address?.coordinates ?? const [],
         'household': householdSize?.toString() ?? '',
         'diet': dietary,
-        'nonprofit': '',
+        'allergens': allergens,
+        'nonprofit': nonprofitName ?? '',
       };
 
   UserModel copyWith({
@@ -217,6 +257,8 @@ class UserModel {
       status: status ?? this.status,
       createdAt: createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
+      nonprofitName: nonprofitName,
+      profileOptions: profileOptions,
     );
   }
 
@@ -227,6 +269,14 @@ class UserModel {
   static List<String> _strings(dynamic value) => value is List
       ? value.map((e) => e.toString()).where((e) => e.isNotEmpty).toList()
       : const [];
+
+  static Map<String, List<String>> _profileOptions(dynamic value) {
+    if (value is! Map) return const {};
+    return {
+      for (final entry in value.entries)
+        entry.key.toString(): _strings(entry.value),
+    };
+  }
 
   static Map<String, dynamic>? _map(dynamic value) => value is Map
       ? Map<String, dynamic>.from(value)
