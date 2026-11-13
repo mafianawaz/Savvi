@@ -14,7 +14,7 @@ class OneSignalService {
   OneSignalService._();
 
   static final OneSignalService instance = OneSignalService._();
-  static const String _appId = String.fromEnvironment('ONESIGNAL_APP_ID');
+  static const String _appId = '5eaceab5-c504-4f59-8859-d347d2cfb831';
 
   bool _initialized = false;
   bool _observerAttached = false;
@@ -76,6 +76,32 @@ class OneSignalService {
       // observer handles the eventual ID; login/signup also wait for it.
     } catch (error, stack) {
       debugPrint('[OneSignal] Initialization failed: $error');
+      debugPrintStack(stackTrace: stack);
+    }
+  }
+
+
+  /// Associate the authenticated Savvi member with this OneSignal subscription.
+  /// This enables dashboard/API targeting by the member's stable backend ID.
+  Future<void> identifyUser(String externalUserId) async {
+    final id = externalUserId.trim();
+    if (!_initialized || id.isEmpty) return;
+    try {
+      await OneSignal.login(id);
+    } catch (error, stack) {
+      debugPrint('[OneSignal] User identification failed: $error');
+      debugPrintStack(stackTrace: stack);
+    }
+  }
+
+  /// Clear the OneSignal user association when the member signs out.
+  Future<void> clearUser() async {
+    if (!_initialized) return;
+    try {
+      await OneSignal.logout();
+      _lastDeliveredPlayerId = null;
+    } catch (error, stack) {
+      debugPrint('[OneSignal] User logout failed: $error');
       debugPrintStack(stackTrace: stack);
     }
   }

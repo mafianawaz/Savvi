@@ -75,6 +75,8 @@ class AuthController extends GetxController {
         user: savedUser,
         profile: savedUser.toProfileMap(),
       );
+      // Restore OneSignal's stable external-user association for this session.
+      OneSignalService.instance.identifyUser(savedUser.id);
       // Refresh persisted data so the app uses the server as source of truth.
       refreshProfile();
     }
@@ -138,6 +140,7 @@ class AuthController extends GetxController {
       profile: authoritativeUser.toProfileMap(),
     );
     state.value = next;
+    await OneSignalService.instance.identifyUser(authoritativeUser.id);
     return next;
   }
 
@@ -154,6 +157,7 @@ class AuthController extends GetxController {
 
   void signOut() {
     state.value = const AuthSignedOut();
+    OneSignalService.instance.clearUser();
     tokenStorage.clear();
     userStorage.clear();
   }
