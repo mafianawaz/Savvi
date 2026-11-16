@@ -91,7 +91,6 @@ Future<void> main() async {
     permanent: true,
   );
 
-
   Get.put<EditProfileController>(
     EditProfileController(
       api: Get.find<SavviApi>(),
@@ -123,7 +122,8 @@ Future<void> main() async {
   // subscription ID that becomes available after the initial auth request.
   OneSignalService.instance.setPlayerIdHandler((playerId) async {
     if (Get.find<TokenStorage>().hasAccessToken) {
-      final result = await Get.find<SavviApi>().updateOneSignalPlayerId(playerId);
+      final result =
+          await Get.find<SavviApi>().updateOneSignalPlayerId(playerId);
       if (result is ApiErr<void>) {
         debugPrint('[OneSignal] Player ID sync returned an API error.');
       }
