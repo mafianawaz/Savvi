@@ -26,7 +26,7 @@ class AppConfig {
   static const bool kUseMockApi = false;
 
   static const dev = AppConfig(
-    apiBaseUrl: 'https://savur-sandbox.duckdns.org/savur/api/v1',
+    apiBaseUrl: 'https://9e97-103-147-42-81.ngrok-free.app/savur/api/v1',
     useMockApi: kUseMockApi,
   );
 }

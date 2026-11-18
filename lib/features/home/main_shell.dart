@@ -73,8 +73,8 @@ class _MainShellState extends State<MainShell> with RouteAware {
       Obx(() {
         final profile = authController.profile;
         final household = int.tryParse(
-          ((profile?['household'] as String?) ?? '1').replaceAll('+', ''),
-        ) ??
+              ((profile?['household'] as String?) ?? '1').replaceAll('+', ''),
+            ) ??
             1;
 
         return AlertsScreen(household: household);
@@ -223,6 +223,7 @@ class _NavItem extends StatelessWidget {
 /// squircle, not a full circle. Always pushes a fresh request draft. Shows
 /// a green selected ring while the wizard is the topmost route (driven by
 /// [ShellController.isRequestActive] in [MainShell]).
+
 class _RequestNavItem extends StatelessWidget {
   const _RequestNavItem({
     required this.label,
@@ -241,11 +242,12 @@ class _RequestNavItem extends StatelessWidget {
         onTap: onTap,
         child: SizedBox(
           height: 64,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
+          child: Stack(
+            alignment: Alignment.center,
+            clipBehavior: Clip.none,
             children: [
-              Transform.translate(
-                offset: const Offset(0, -14),
+              Positioned(
+                top: 0,
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 150),
                   width: 48,
@@ -283,10 +285,13 @@ class _RequestNavItem extends StatelessWidget {
                   ),
                 ),
               ),
-              Transform.translate(
-                offset: const Offset(0, -8),
+              Positioned(
+                bottom: 0,
                 child: Text(
                   label,
+                  maxLines: 1,
+                  softWrap: false,
+                  textScaler: TextScaler.noScaling,
                   style: TextStyle(
                     fontFamily: SavFonts.sans,
                     fontSize: 10,
@@ -302,3 +307,83 @@ class _RequestNavItem extends StatelessWidget {
     );
   }
 }
+
+// class _RequestNavItem extends StatelessWidget {
+//   const _RequestNavItem({
+//     required this.label,
+//     required this.onTap,
+//     this.selected = false,
+//   });
+
+//   final String label;
+//   final VoidCallback onTap;
+//   final bool selected;
+
+//   @override
+//   Widget build(BuildContext context) {
+//     return Expanded(
+//       child: InkWell(
+//         onTap: onTap,
+//         child: SizedBox(
+//           height: 64,
+//           child: Column(
+//             mainAxisAlignment: MainAxisAlignment.center,
+//             children: [
+//               Transform.translate(
+//                 offset: const Offset(0, -14),
+//                 child: AnimatedContainer(
+//                   duration: const Duration(milliseconds: 150),
+//                   width: 48,
+//                   height: 48,
+//                   decoration: BoxDecoration(
+//                     borderRadius: BorderRadius.circular(SavRadius.r16),
+//                     border: Border.all(
+//                       color: selected ? SavColors.green : SavColors.surface,
+//                       width: selected ? 2.5 : 3,
+//                     ),
+//                     boxShadow: [
+//                       BoxShadow(
+//                         color: selected
+//                             ? const Color(0x5529E050)
+//                             : const Color(0x33000000),
+//                         blurRadius: selected ? 10 : 8,
+//                         offset: const Offset(0, 3),
+//                       ),
+//                     ],
+//                   ),
+//                   child: ClipRRect(
+//                     borderRadius: BorderRadius.circular(SavRadius.r14),
+//                     child: Image.asset(
+//                       SavImages.navRequest,
+//                       fit: BoxFit.cover,
+//                       errorBuilder: (context, error, stack) => Container(
+//                         color: SavColors.navy,
+//                         child: const Icon(
+//                           Icons.add,
+//                           color: Colors.white,
+//                           size: 24,
+//                         ),
+//                       ),
+//                     ),
+//                   ),
+//                 ),
+//               ),
+//               Transform.translate(
+//                 offset: const Offset(0, -8),
+//                 child: Text(
+//                   label,
+//                   style: TextStyle(
+//                     fontFamily: SavFonts.sans,
+//                     fontSize: 10,
+//                     fontWeight: FontWeight.w700,
+//                     color: selected ? SavColors.greenDk : SavColors.navy,
+//                   ),
+//                 ),
+//               ),
+//             ],
+//           ),
+//         ),
+//       ),
+//     );
+//   }
+// }

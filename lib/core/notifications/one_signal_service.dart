@@ -34,22 +34,17 @@ class OneSignalService {
   }
 
   Future<void> initialize({bool requestPermission = true}) async {
-    if (_initialized || !isConfigured) {
-      if (!isConfigured) {
-        debugPrint('[OneSignal] Missing ONESIGNAL_APP_ID; push setup skipped.');
-      }
-      return;
-    }
+    if (_initialized || !isConfigured) return;
 
     try {
       OneSignal.Debug.setLogLevel(
         kDebugMode ? OSLogLevel.verbose : OSLogLevel.none,
       );
+
       OneSignal.initialize(_appId.trim());
       _initialized = true;
 
       OneSignal.Notifications.addClickListener((event) {
-        // The SDK may deliver a cold-start tap before GetMaterialApp mounts.
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (Get.key.currentState != null &&
               Get.currentRoute != Routes.notifications) {
@@ -60,42 +55,127 @@ class OneSignalService {
 
       if (!_observerAttached) {
         OneSignal.User.pushSubscription.addObserver((state) {
-          debugPrint('[OneSignal] Push subscription changed');
-          debugPrint('[OneSignal] Subscription ID: ${state.current.id}');
-          debugPrint('[OneSignal] Push token: ${state.current.token}');
+          debugPrint('[OneSignal] Subscription changed');
+          debugPrint('[OneSignal] ID: ${state.current.id}');
+          debugPrint('[OneSignal] Token: ${state.current.token}');
           debugPrint('[OneSignal] Opted in: ${state.current.optedIn}');
+
           final id = state.current.id;
           if (id != null && id.trim().isNotEmpty) {
             _notifyPlayerId(id.trim());
           }
         });
+
         _observerAttached = true;
       }
 
       if (requestPermission) {
-        await OneSignal.Notifications.requestPermission(true);
+        final permissionGranted =
+            await OneSignal.Notifications.requestPermission(true);
+
+        debugPrint(
+          '[OneSignal] Permission request result: $permissionGranted',
+        );
       }
 
-      // Diagnostic state for iOS/Android push registration. Permission being
-      // granted does not by itself confirm APNs registration or a push token.
-      _logSubscriptionState('after initialization');
+      // Allow time for asynchronous device registration.
+      for (var i = 0; i < 20; i++) {
+        final subscriptionId = OneSignal.User.pushSubscription.id;
 
-      // Subscription registration is asynchronous on both platforms. The
-      // observer below logs and syncs the eventual subscription ID/token.
+        if (subscriptionId != null && subscriptionId.isNotEmpty) {
+          break;
+        }
+
+        await Future<void>.delayed(
+          const Duration(seconds: 1),
+        );
+      }
+
+      debugPrint('[OneSignal] Final device registration status');
+      debugPrint(
+        '[OneSignal] Permission: ${OneSignal.Notifications.permission}',
+      );
+      debugPrint(
+        '[OneSignal] Subscription ID: ${OneSignal.User.pushSubscription.id}',
+      );
+      debugPrint(
+        '[OneSignal] Push token: ${OneSignal.User.pushSubscription.token}',
+      );
+      debugPrint(
+        '[OneSignal] Opted in: ${OneSignal.User.pushSubscription.optedIn}',
+      );
     } catch (error, stack) {
       debugPrint('[OneSignal] Initialization failed: $error');
       debugPrintStack(stackTrace: stack);
     }
   }
 
+  // Future<void> initialize({bool requestPermission = true}) async {
+  //   if (_initialized || !isConfigured) {
+  //     if (!isConfigured) {
+  //       debugPrint('[OneSignal] Missing ONESIGNAL_APP_ID; push setup skipped.');
+  //     }
+  //     return;
+  //   }
+
+  //   try {
+  //     OneSignal.Debug.setLogLevel(
+  //       kDebugMode ? OSLogLevel.verbose : OSLogLevel.none,
+  //     );
+  //     OneSignal.initialize(_appId.trim());
+  //     _initialized = true;
+
+  //     OneSignal.Notifications.addClickListener((event) {
+  //       // The SDK may deliver a cold-start tap before GetMaterialApp mounts.
+  //       WidgetsBinding.instance.addPostFrameCallback((_) {
+  //         if (Get.key.currentState != null &&
+  //             Get.currentRoute != Routes.notifications) {
+  //           Get.toNamed(Routes.notifications);
+  //         }
+  //       });
+  //     });
+
+  //     if (!_observerAttached) {
+  //       OneSignal.User.pushSubscription.addObserver((state) {
+  //         debugPrint('[OneSignal] Push subscription changed');
+  //         debugPrint('[OneSignal] Subscription ID: ${state.current.id}');
+  //         debugPrint('[OneSignal] Push token: ${state.current.token}');
+  //         debugPrint('[OneSignal] Opted in: ${state.current.optedIn}');
+  //         final id = state.current.id;
+  //         if (id != null && id.trim().isNotEmpty) {
+  //           _notifyPlayerId(id.trim());
+  //         }
+  //       });
+  //       _observerAttached = true;
+  //     }
+
+  //     if (requestPermission) {
+  //       await OneSignal.Notifications.requestPermission(true);
+  //     }
+
+  //     // Diagnostic state for iOS/Android push registration. Permission being
+  //     // granted does not by itself confirm APNs registration or a push token.
+  //     _logSubscriptionState('after initialization');
+
+  //     // Subscription registration is asynchronous on both platforms. The
+  //     // observer below logs and syncs the eventual subscription ID/token.
+  //   } catch (error, stack) {
+  //     debugPrint('[OneSignal] Initialization failed: $error');
+  //     debugPrintStack(stackTrace: stack);
+  //   }
+  // }
 
   void _logSubscriptionState(String stage) {
     try {
       debugPrint('[OneSignal] $stage');
-      debugPrint('[OneSignal] Permission: ${OneSignal.Notifications.permission}');
-      debugPrint('[OneSignal] Subscription ID: ${OneSignal.User.pushSubscription.id}');
-      debugPrint('[OneSignal] Push token: ${OneSignal.User.pushSubscription.token}');
-      debugPrint('[OneSignal] Opted in: ${OneSignal.User.pushSubscription.optedIn}');
+      debugPrint(
+          '[OneSignal] Permission: ${OneSignal.Notifications.permission}');
+      debugPrint(
+          '[OneSignal] Subscription ID: ${OneSignal.User.pushSubscription.id}');
+      debugPrint(
+          '[OneSignal] Push token: ${OneSignal.User.pushSubscription.token}');
+      debugPrint(
+          '[OneSignal] Opted in: ${OneSignal.User.pushSubscription.optedIn}');
     } catch (error) {
       debugPrint('[OneSignal] Could not read subscription state: $error');
     }
