@@ -60,6 +60,10 @@ class OneSignalService {
 
       if (!_observerAttached) {
         OneSignal.User.pushSubscription.addObserver((state) {
+          debugPrint('[OneSignal] Push subscription changed');
+          debugPrint('[OneSignal] Subscription ID: ${state.current.id}');
+          debugPrint('[OneSignal] Push token: ${state.current.token}');
+          debugPrint('[OneSignal] Opted in: ${state.current.optedIn}');
           final id = state.current.id;
           if (id != null && id.trim().isNotEmpty) {
             _notifyPlayerId(id.trim());
@@ -72,14 +76,30 @@ class OneSignalService {
         await OneSignal.Notifications.requestPermission(true);
       }
 
+      // Diagnostic state for iOS/Android push registration. Permission being
+      // granted does not by itself confirm APNs registration or a push token.
+      _logSubscriptionState('after initialization');
+
       // Subscription registration is asynchronous on both platforms. The
-      // observer handles the eventual ID; login/signup also wait for it.
+      // observer below logs and syncs the eventual subscription ID/token.
     } catch (error, stack) {
       debugPrint('[OneSignal] Initialization failed: $error');
       debugPrintStack(stackTrace: stack);
     }
   }
 
+
+  void _logSubscriptionState(String stage) {
+    try {
+      debugPrint('[OneSignal] $stage');
+      debugPrint('[OneSignal] Permission: ${OneSignal.Notifications.permission}');
+      debugPrint('[OneSignal] Subscription ID: ${OneSignal.User.pushSubscription.id}');
+      debugPrint('[OneSignal] Push token: ${OneSignal.User.pushSubscription.token}');
+      debugPrint('[OneSignal] Opted in: ${OneSignal.User.pushSubscription.optedIn}');
+    } catch (error) {
+      debugPrint('[OneSignal] Could not read subscription state: $error');
+    }
+  }
 
   /// Associate the authenticated Savvi member with this OneSignal subscription.
   /// This enables dashboard/API targeting by the member's stable backend ID.
